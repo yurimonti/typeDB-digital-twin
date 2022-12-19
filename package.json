@@ -1,0 +1,22 @@
+{
+  "name": "typedb-digital-twin",
+  "version": "1.0.0",
+  "description": "IoT device's digital twins works on TypeDB",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yurimonti/typeDB-digital-twin.git"
+  },
+  "author": "yurimonti",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yurimonti/typeDB-digital-twin/issues"
+  },
+  "homepage": "https://github.com/yurimonti/typeDB-digital-twin#readme",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
