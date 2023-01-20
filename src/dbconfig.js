@@ -1,6 +1,46 @@
 const { TypeDB, SessionType, TransactionType } = require("typedb-client");
-const JsonEntityConstructor = require('./jsonEntityConstructor.js');
-const database = "iot";
+const {createJsonFromThing} = require('./jsonEntityConstructor.js');
+
+const database = "API_ASSET#TYPEDB"; //inserire nome database
+
+async function getThings() {
+	const client = TypeDB.coreClient("localhost:1729");
+	const session = await client.session(database, SessionType.DATA);
+	const readTransaction = await session.transaction(TransactionType.READ);
+	//let answerStream = readTransaction.query.match("match $label isa label;$thingId isa thingId; $x isa digital-twin, has $label,has $thingId;get $x,$label,$thingId;");
+	// Stream<ConceptMap>
+	let answerStream = readTransaction.query.match('match $x isa digital-twin;get $x;');
+	// ConceptMap[]
+	const thingsConcepts = await answerStream.collect();
+	// Entity[]
+	let things = thingsConcepts.map(t => t.get('x').asEntity());
+	let thingsArray = [];
+	for await (const thing of things) {
+		const thingToAdd = await createJsonFromThing(readTransaction,thing);
+		thingsArray.push(thingToAdd);
+	}
+/* 	const boh = await result.asRemote(readTransaction).getHas(true).collect();
+	const attributes = boh.map(a => a.asAttribute()).map(a => { return { [a.type._label._name]: a.value } }); */
+
+	/* const result = things.map(p => new JsonEntityConstructor(p.get('x'), p.get('a'))
+		.createJson()); */
+
+	/* 	const label = things.map(a => a.get("label").asAttribute()).map(a => { return { type: a.type._label._name, value: a.value } });//.map(v => v.iid);
+		const id = things.map(a => a.get("thingId").asAttribute())//.map(v => v.iid);
+		const dt = things.map(a => a.get('x')); */
+	/* 	const result = {
+			entities: dt,
+			labels: label,
+			ids: id
+		}; */
+	await readTransaction.close();
+	// a session must always be closed
+	await session.close();
+	// a client must always be closed
+	client.close();
+	return thingsArray;
+	//return result.map(r => { return { [r.type._label._name]: { attributes: attributes } } });
+}
 
 /* async function openSession (database) {
 	const client = TypeDB.coreClient("localhost:1729");
@@ -86,7 +126,7 @@ async function closeSession(client, session) {
 	client.close();
 }
 
-module.exports = { openSession, closeSession, closeTransaction, createTransaction, runBasicQueries }
+module.exports = { openSession, closeSession, closeTransaction, createTransaction, runBasicQueries, getThings }
 
 /*async function createTransactions (database) {
 	const client = TypeDB.coreClient("localhost:1729");

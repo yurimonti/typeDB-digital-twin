@@ -8,6 +8,10 @@ app.get('/',(req,res)=>{
     res.send("Hello World!!");
 })
 
+app.get('/things',async (req,res)=>{
+    res.send(await typeDB.getThings());
+})
+
 app.get("/allPersons",async (req,res)=>{
     /* const clientAndSession = await typeDB.openSession(SessionType.DATA);
     const readTransaction = await typeDB.createTransaction(clientAndSession.session,TransactionType.READ);

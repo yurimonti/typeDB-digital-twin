@@ -1,4 +1,4 @@
-module.exports = class JsonEntityConstructor {
+/* module.exports = class JsonEntityConstructor {
     #entityType;
     #attributes;
     constructor(entity,attribute) {
@@ -19,3 +19,19 @@ module.exports = class JsonEntityConstructor {
     }
   }
 
+ */
+/**
+ * 
+ * @param {*} transaction TypeDBTransaction per asRemote
+ * @param {*} thing Entity da parsare
+ * @returns json object
+ */
+async function createJsonFromThing(transaction,thing) {
+    const attributesCollection = await thing.asRemote(transaction).getHas(true).collect();
+    const attributes = attributesCollection.map(a => a.asAttribute()).map(a => { return { [a.type._label._name]: a.value } });
+    return { [thing.type._label._name]: { attributes: attributes } };
+}
+
+module.exports = {
+    createJsonFromThing
+}
