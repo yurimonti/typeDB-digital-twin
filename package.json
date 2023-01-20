@@ -17,6 +17,10 @@
   },
   "homepage": "https://github.com/yurimonti/typeDB-digital-twin#readme",
   "dependencies": {
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "typedb-client": "^2.11.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.20"
   }
 }
