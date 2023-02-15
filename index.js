@@ -12,6 +12,14 @@ app.get('/things',async (req,res)=>{
     res.send(await typeDB.getThings());
 })
 
+app.get("/relations", async (req, res) => {
+  res.send(await typeDB.getRelations());
+});
+
+app.get("/people", async (req, res) => {
+  res.send(await typeDB.getPeople());
+});
+
 app.get("/allPersons",async (req,res)=>{
     /* const clientAndSession = await typeDB.openSession(SessionType.DATA);
     const readTransaction = await typeDB.createTransaction(clientAndSession.session,TransactionType.READ);

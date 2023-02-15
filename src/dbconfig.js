@@ -1,45 +1,90 @@
 const { TypeDB, SessionType, TransactionType } = require("typedb-client");
-const {createJsonFromThing} = require('./jsonEntityConstructor.js');
+const {
+  createJsonFromThing,
+  createJsonFromRelation,
+} = require("./jsonEntityConstructor.js");
 
 const database = "API_ASSET#TYPEDB"; //inserire nome database
 
 async function getThings() {
-	const client = TypeDB.coreClient("localhost:1729");
-	const session = await client.session(database, SessionType.DATA);
-	const readTransaction = await session.transaction(TransactionType.READ);
-	//let answerStream = readTransaction.query.match("match $label isa label;$thingId isa thingId; $x isa digital-twin, has $label,has $thingId;get $x,$label,$thingId;");
-	// Stream<ConceptMap>
-	let answerStream = readTransaction.query.match('match $x isa digital-twin;get $x;');
-	// ConceptMap[]
-	const thingsConcepts = await answerStream.collect();
-	// Entity[]
-	let things = thingsConcepts.map(t => t.get('x').asEntity());
-	let thingsArray = [];
-	for await (const thing of things) {
-		const thingToAdd = await createJsonFromThing(readTransaction,thing);
-		thingsArray.push(thingToAdd);
-	}
-/* 	const boh = await result.asRemote(readTransaction).getHas(true).collect();
+  const client = TypeDB.coreClient("localhost:1729");
+  const session = await client.session(database, SessionType.DATA);
+  const readTransaction = await session.transaction(TransactionType.READ);
+  //let answerStream = readTransaction.query.match("match $label isa label;$thingId isa thingId; $x isa digital-twin, has $label,has $thingId;get $x,$label,$thingId;");
+  // Stream<ConceptMap>
+  let answerStream = readTransaction.query.match(
+    "match $x isa digital-twin;get $x;"
+  );
+  // ConceptMap[]
+  const thingsConcepts = await answerStream.collect();
+  // Entity[]
+  let things = thingsConcepts.map((t) => t.get("x").asEntity());
+  let thingsArray = [];
+  for await (const thing of things) {
+    const thingToAdd = await createJsonFromThing(readTransaction, thing);
+    thingsArray.push(thingToAdd);
+  }
+  /* 	const boh = await result.asRemote(readTransaction).getHas(true).collect();
 	const attributes = boh.map(a => a.asAttribute()).map(a => { return { [a.type._label._name]: a.value } }); */
 
-	/* const result = things.map(p => new JsonEntityConstructor(p.get('x'), p.get('a'))
+  /* const result = things.map(p => new JsonEntityConstructor(p.get('x'), p.get('a'))
 		.createJson()); */
 
-	/* 	const label = things.map(a => a.get("label").asAttribute()).map(a => { return { type: a.type._label._name, value: a.value } });//.map(v => v.iid);
+  /* 	const label = things.map(a => a.get("label").asAttribute()).map(a => { return { type: a.type._label._name, value: a.value } });//.map(v => v.iid);
 		const id = things.map(a => a.get("thingId").asAttribute())//.map(v => v.iid);
 		const dt = things.map(a => a.get('x')); */
-	/* 	const result = {
+  /* 	const result = {
 			entities: dt,
 			labels: label,
 			ids: id
 		}; */
-	await readTransaction.close();
-	// a session must always be closed
-	await session.close();
-	// a client must always be closed
-	client.close();
-	return thingsArray;
-	//return result.map(r => { return { [r.type._label._name]: { attributes: attributes } } });
+  await readTransaction.close();
+  await session.close();
+  client.close();
+  return thingsArray;
+}
+
+async function getRelations() {
+  const client = TypeDB.coreClient("localhost:1729");
+  const session = await client.session(database, SessionType.DATA);
+  const readTransaction = await session.transaction(TransactionType.READ);
+  let answerStream = readTransaction.query.match(
+    "match $x isa relation;get $x;"
+  );
+
+  const relationConcept = await answerStream.collect();
+  let relations = relationConcept.map((t) => t.get("x").asRelation());
+  let relationsArray = [];
+  for await (const relation of relations) {
+    const relToAdd = await createJsonFromRelation(readTransaction, relation);
+    relationsArray.push(relToAdd);
+  }
+
+  await readTransaction.close();
+  await session.close();
+  client.close();
+  return relationsArray;
+}
+
+async function getPeople() {
+  const client = TypeDB.coreClient("localhost:1729");
+  const session = await client.session(database, SessionType.DATA);
+  const readTransaction = await session.transaction(TransactionType.READ);
+  answerStream = await readTransaction.query.match(
+    "match $x isa person; get $x;"
+  );
+  const persons = await answerStream.collect();
+  let people = persons.map((t) => t.get("x").asEntity());
+  let array = [];
+  for await (const person of people) {
+    const personToAdd = await createJsonFromThing(readTransaction, people);
+    array.push(personToAdd);
+  }
+
+  await readTransaction.close();
+  await session.close();
+  client.close();
+  return array;
 }
 
 /* async function openSession (database) {
@@ -51,11 +96,11 @@ async function getThings() {
 	client.close();
 }; */
 
-//TODO: cancellare 
+//TODO: cancellare
 async function runBasicQueries() {
-	const client = TypeDB.coreClient("localhost:1729");
-	const session = await client.session(database, SessionType.DATA);
-	/* const query = 'insert $p isa person, has key "mario_rossi", has label "Mario Rossi";$d isa department, has key "polob_lodovici_a", has label "Polo A Lodovici";$reference(department-director:$p , directed:$d) isa reference;';
+  const client = TypeDB.coreClient("localhost:1729");
+  const session = await client.session(database, SessionType.DATA);
+  /* const query = 'insert $p isa person, has key "mario_rossi", has label "Mario Rossi";$d isa department, has key "polob_lodovici_a", has label "Polo A Lodovici";$reference(department-director:$p , directed:$d) isa reference;';
 	// Insert a person using a WRITE transaction
 	const writeTransaction = await session.transaction(TransactionType.WRITE);
 	const insertStream = writeTransaction.query.insert(query);
@@ -64,69 +109,79 @@ async function runBasicQueries() {
 	// to persist changes, a write transaction must always be committed (closed)
 	await writeTransaction.commit(); */
 
-	// Retrieve persons using a READ only transaction
-	const readTransaction = await session.transaction(TransactionType.READ);
+  // Retrieve persons using a READ only transaction
+  const readTransaction = await session.transaction(TransactionType.READ);
 
-	// We can either query and consume the iterator lazily
-	//let answerStream = readTransaction.query.match("match $x isa person; get $x; limit 10;");
-	/* for await (const aConceptMapAnswer of answerStream) {
+  // We can either query and consume the iterator lazily
+  //let answerStream = readTransaction.query.match("match $x isa person; get $x; limit 10;");
+  /* for await (const aConceptMapAnswer of answerStream) {
 		const person = aConceptMapAnswer.get("x");
 		console.log("Retrieved person with id " + person.iid);
 	} */
 
-	// Or query and consume the iterator immediately collecting all the results
-	let answerStream = readTransaction.query.match("match $x isa person, has $a; get $x,$a;");
-	const persons = await answerStream.collect();
-	const result = persons.map(p => new JsonEntityConstructor(p.get('x'), p.get('a'))
-		.createJson());
+  // Or query and consume the iterator immediately collecting all the results
+  let answerStream = readTransaction.query.match(
+    "match $x isa person, has $a; get $x,$a;"
+  );
+  const persons = await answerStream.collect();
+  const result = persons.map((p) =>
+    new JsonEntityConstructor(p.get("x"), p.get("a")).createJson()
+  );
 
-	/* console.log(aPerson);
+  /* console.log(aPerson);
 	let attributes = {[aPerson.get("a")._type._label._name]:aPerson.get("a")._value};
 	let entity = {[aPerson.get("x")._type._label._name]:attributes}; */
-	//console.log(attributes);
-	/* console.log(new JsonEntityConstructor(aPerson.get('x'), aPerson.get('a'))
+  //console.log(attributes);
+  /* console.log(new JsonEntityConstructor(aPerson.get('x'), aPerson.get('a'))
 		.createJson()); */
-	/* persons.forEach( conceptMap => {
+  /* persons.forEach( conceptMap => {
 		let person = conceptMap.get("x");
 		console.log("Retrieved person with id " + person.iid);
 	}); */
 
-	// a read transaction must always be closed
-	await readTransaction.close();
-	// a session must always be closed
-	await session.close();
-	// a client must always be closed
-	client.close();
-	return result;
+  // a read transaction must always be closed
+  await readTransaction.close();
+  // a session must always be closed
+  await session.close();
+  // a client must always be closed
+  client.close();
+  return result;
 }
 
-
 async function openSession(sessionType) {
-	const client = TypeDB.coreClient("localhost:1729");
-	const session = await client.session(database, sessionType);
-	// session is open
-	return { client: client, session: session };
+  const client = TypeDB.coreClient("localhost:1729");
+  const session = await client.session(database, sessionType);
+  // session is open
+  return { client: client, session: session };
 }
 
 async function createTransaction(session, transactionType) {
-	const transaction = await session.transaction(transactionType);
-	return transaction;
+  const transaction = await session.transaction(transactionType);
+  return transaction;
 }
 
-
 async function closeTransaction(transaction) {
-	if (transaction.isOpen) {
-		if (transaction.type === "READ") transaction.close();
-		else transaction.commit();
-	}
+  if (transaction.isOpen) {
+    if (transaction.type === "READ") transaction.close();
+    else transaction.commit();
+  }
 }
 
 async function closeSession(client, session) {
-	await session.close();
-	client.close();
+  await session.close();
+  client.close();
 }
 
-module.exports = { openSession, closeSession, closeTransaction, createTransaction, runBasicQueries, getThings }
+module.exports = {
+  openSession,
+  closeSession,
+  closeTransaction,
+  createTransaction,
+  runBasicQueries,
+  getThings,
+  getRelations,
+  getPeople,
+};
 
 /*async function createTransactions (database) {
 	const client = TypeDB.coreClient("localhost:1729");
