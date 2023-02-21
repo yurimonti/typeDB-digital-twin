@@ -70,20 +70,19 @@ async function getPeople() {
   const client = TypeDB.coreClient("localhost:1729");
   const session = await client.session(database, SessionType.DATA);
   const readTransaction = await session.transaction(TransactionType.READ);
-  answerStream = await readTransaction.query.match(
-    "match $x isa person; get $x;"
+  let answerStream = await readTransaction.query.match(
+      "match $x isa person; get $x;"
   );
-  const persons = await answerStream.collect();
-  let people = persons.map((t) => t.get("x").asEntity());
+  const allPeople = await answerStream.collect();
+  let people = allPeople.map((t) => t.get("x").asEntity());
   let array = [];
   for await (const person of people) {
-    const personToAdd = await createJsonFromThing(readTransaction, people);
+    const personToAdd = await createJsonFromThing(readTransaction, person);
     array.push(personToAdd);
   }
-
   await readTransaction.close();
   await session.close();
-  client.close();
+  await client.close();
   return array;
 }
 

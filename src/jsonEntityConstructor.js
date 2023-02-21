@@ -27,16 +27,20 @@
  * @returns json object
  */
 async function createJsonFromThing(transaction, thing) {
-  const attributesCollection = await thing
-    .asRemote(transaction)
-    .getHas(true)
-    .collect();
-  const attributes = attributesCollection
-    .map((a) => a.asAttribute())
-    .map((a) => {
-      return { [a.type._label._name]: a.value };
-    });
-  return { [thing.type._label._name]: { attributes: attributes } };
+    try {
+        const attributesCollection = await thing
+            .asRemote(transaction)
+            .getHas(true)
+            .collect();
+        const attributes = attributesCollection
+            .map((a) => a.asAttribute())
+            .map((a) => {
+                return {[a.type._label._name]: a.value};
+            });
+        return {[thing.type._label._name]: {attributes: attributes}};
+    } catch (error) {
+        console.log(error);
+    }
 }
 
 /**
@@ -46,34 +50,63 @@ async function createJsonFromThing(transaction, thing) {
  * @returns json object
  */
 async function createJsonFromRelation(transaction, relation) {
-  const attributesCollection = await relation
-    .asRemote(transaction)
-    .getHas(true)
-    .collect();
-  const attributes = attributesCollection
-    .map((a) => a.asAttribute())
-    .map((a) => {
-      return { [a.type._label._name]: a.value };
-    });
+    try {
+        const attributesCollection = await relation
+            .asRemote(transaction)
+            .getHas(true)
+            .collect();
+        const attributes = attributesCollection
+            .map((a) => a.asAttribute())
+            .map((a) => {
+                return {[a.type._label._name]: a.value};
+            });
 
-  const playersByRoleType = await relation
-    .asRemote(transaction)
-    .getPlayersByRoleType();
-  const players = [];
-  for (const [key, value] of playersByRoleType) {
-    value.forEach((element) => {
-      let entity = element.asEntity().iid;
-      players.push({ [key._label._name]: entity });
-    });
-  }
-  //  console.log(players);
+        const playersByRoleType = await relation
+            .asRemote(transaction)
+            .getPlayersByRoleType();
+        const players = [];
 
-  return {
-    [relation.type._label._name]: { attributes: attributes, roles: players },
-  };
+        // with iid and all attributes for each player
+        // for await (const [key, value] of playersByRoleType) {
+        //   value.forEach(async (element) => {
+        //     try {
+        //       const thing = await createJsonFromThing(
+        //         transaction,
+        //         element.asEntity()
+        //       );
+        //       players.push({ [key._label._name]: element.asEntity().iid, thing });
+        //     } catch (error) {
+        //        console.log("error");
+        //     }
+        //   });
+        // }
+
+
+        // with all attributes for each player
+        for await (const [key, value] of playersByRoleType) {
+            for (const element of value) {
+                try {
+                    const thing = await createJsonFromThing(
+                        transaction,
+                        element.asEntity()
+                    );
+                    players.push({[key._label._name]: thing});
+                    //push only the thingId for a logic entity example
+                    // players.push({ [key._label._name]: thing.logic.attributes[1].thingId });
+                } catch (error) {
+                    console.log(error);
+                }
+            }
+        }
+        return {
+            [relation.type._label._name]: {attributes: attributes, roles: players},
+        };
+    } catch (error) {
+        console.log(error);
+    }
 }
 
 module.exports = {
-  createJsonFromThing,
-  createJsonFromRelation,
+    createJsonFromThing,
+    createJsonFromRelation,
 };
