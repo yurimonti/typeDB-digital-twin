@@ -20,6 +20,10 @@ app.get("/people", async (req, res) => {
   res.send(await typeDB.getPeople());
 });
 
+app.delete("/deleteThing", async (req, res) => {
+    res.send(await typeDB.deleteThing(req.query));
+});
+
 app.get("/allPersons",async (req,res)=>{
     /* const clientAndSession = await typeDB.openSession(SessionType.DATA);
     const readTransaction = await typeDB.createTransaction(clientAndSession.session,TransactionType.READ);
