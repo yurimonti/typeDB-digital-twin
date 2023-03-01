@@ -1,3 +1,6 @@
+import {Attribute, Entity, TypeDBTransaction} from 'typedb-client';
+import { ThingDTOClass } from './Thing';
+
 /* module.exports = class JsonEntityConstructor {
     #entityType;
     #attributes;
@@ -26,7 +29,7 @@
  * @param {*} thing Entity da parsare
  * @returns json object
  */
-async function createJsonFromThing(transaction,thing) {
+/* async function createJsonFromThing(transaction,thing) {
     const attributesCollection = await thing.asRemote(transaction).getHas(true).collect();
     const attributes = attributesCollection.map(a => a.asAttribute()).map(a => { return { [a.type._label._name]: a.value } });
     return { [thing.type._label._name]: { attributes: attributes } };
@@ -34,4 +37,13 @@ async function createJsonFromThing(transaction,thing) {
 
 module.exports = {
     createJsonFromThing
+} */
+
+export async function createDTOFromEntity(transaction:TypeDBTransaction,thing:Entity) : Promise<ThingDTOClass> {
+    const attributesCollection: Attribute[] = await thing.asRemote(transaction).getHas(true).collect();
+    const attributes:any[] = attributesCollection.map(a => a.asAttribute()).map(a => { return { [a.type.label.name]: a.value } });
+    let realAttribute:any = {};
+    attributes.forEach(a => realAttribute = {...realAttribute,a});
+    console.log(attributes);
+    return new ThingDTOClass("ciao",realAttribute,{});
 }
