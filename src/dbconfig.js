@@ -1,7 +1,7 @@
 const {TypeDB, SessionType, TransactionType} = require("typedb-client");
 const {
-    createJsonFromThing,
-    createJsonFromRelation,
+    createJsonAllThing,
+    createJsonAllRelation,
 } = require("./jsonEntityConstructor.js");
 
 const database = "API_ASSET#TYPEDB"; //inserire nome database
@@ -20,7 +20,7 @@ async function getThings() {
     let things = thingsConcepts.map((t) => t.get("x").asEntity());
     let thingsArray = [];
     for await (const thing of things) {
-        const thingToAdd = await createJsonFromThing(readTransaction, thing);
+        const thingToAdd = await createJsonAllThing(readTransaction, thing);
         thingsArray.push(thingToAdd);
     }
     /* 	const boh = await result.asRemote(readTransaction).getHas(true).collect();
@@ -54,7 +54,7 @@ async function getRelations() {
     let relations = relationConcept.map((t) => t.get("x").asRelation());
     let relationsArray = [];
     for await (const relation of relations) {
-        const relToAdd = await createJsonFromRelation(readTransaction, relation);
+        const relToAdd = await createJsonAllRelation(readTransaction, relation);
         relationsArray.push(relToAdd);
     }
     await readTransaction.close();
