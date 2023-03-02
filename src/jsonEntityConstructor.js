@@ -123,7 +123,7 @@ async function createJsonOnlyIDThing(transaction, entity) {
         const name = attributesCollection
             .map((a) => a.asAttribute())
             .map((a) => {
-                if (a.type._label._name === 'thingId' || a.type._label._name === 'personId') {
+                if (a.type._label._name === 'thingId') {
                     return {[a.type._label._name]: a.value};
                 } else {
                     return null;

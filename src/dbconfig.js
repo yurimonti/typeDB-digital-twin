@@ -1,3 +1,6 @@
+
+
+
 const {TypeDB, SessionType, TransactionType} = require("typedb-client");
 const {
     createJsonAllThing,
@@ -6,13 +9,17 @@ const {
 
 const database = "API_ASSET#TYPEDB"; //inserire nome database
 
+/**
+ * Gets all things
+ * @returns {Promise<*[]>}
+ */
 async function getThings() {
     const client = TypeDB.coreClient("localhost:1729");
     const session = await client.session(database, SessionType.DATA);
     const readTransaction = await session.transaction(TransactionType.READ);
     // Stream<ConceptMap>
     let answerStream = readTransaction.query.match(
-        "match $x isa digital-twin;get $x;"
+        "match $x isa entity;get $x;"
     );
     // ConceptMap[]
     const thingsConcepts = await answerStream.collect();
@@ -43,6 +50,10 @@ async function getThings() {
     return thingsArray;
 }
 
+/**
+ * Gets all relations and roles
+ * @returns {Promise<*[]>}
+ */
 async function getRelations() {
     const client = TypeDB.coreClient("localhost:1729");
     const session = await client.session(database, SessionType.DATA);
@@ -63,60 +74,6 @@ async function getRelations() {
     return relationsArray;
 }
 
-async function getPeople() {
-    const client = TypeDB.coreClient("localhost:1729");
-    const session = await client.session(database, SessionType.DATA);
-    const readTransaction = await session.transaction(TransactionType.READ);
-    let answerStream = await readTransaction.query.match(
-        "match $x isa person; get $x;"
-    );
-    const allPeople = await answerStream.collect();
-    let people = allPeople.map((t) => t.get("x").asEntity());
-    let array = [];
-    for await (const person of people) {
-        const personToAdd = await createJsonFromThing(readTransaction, person);
-        array.push(personToAdd);
-    }
-    await readTransaction.close();
-    await session.close();
-    await client.close();
-    return array;
-}
-
-
-async function deleteThing(reqQuery) {
-    const client = TypeDB.coreClient("localhost:1729");
-    const session = await client.session(database, SessionType.DATA);
-    const delTransaction = await session.transaction(TransactionType.WRITE);
-    let answer = undefined;
-    try {
-        if (JSON.stringify(reqQuery) === "{}") {
-            console.log("insert parameters");
-            answer = "insert parameters";
-        } else {
-            const obj = new Object(reqQuery);
-            const array = JSON.stringify(obj);
-            const map = new Map(Object.entries(JSON.parse(array)));
-            for (let key of map.keys()) {
-                let value = map.get(key);
-                if (Array.isArray(map.get(key))) {
-                    for (let i = 0; i < value.length; i++) {
-                        let attr = value[i];
-                        answer = await delTransaction.query.delete("match $p isa entity, has " + key + "'" + attr + "'; delete $p isa entity;");
-                    }
-                } else {
-                    answer = await delTransaction.query.delete("match $p isa entity, has " + key + "'" + value + "'; delete $p isa entity;");
-                }
-            }
-        }
-    } catch (error) {
-        console.log(error);
-    }
-    await delTransaction.commit();
-    await session.close();
-    await client.close();
-    return answer;
-}
 
 
 /* async function openSession (database) {
@@ -212,8 +169,6 @@ module.exports = {
     runBasicQueries,
     getThings,
     getRelations,
-    getPeople,
-    deleteThing,
 };
 
 /*async function createTransactions (database) {
