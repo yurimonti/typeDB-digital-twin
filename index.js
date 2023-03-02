@@ -1,11 +1,13 @@
 const express = require("express");
 const typeDB = require("./src/dbconfig");
 const { TypeDB, SessionType, TransactionType } = require("typedb-client");
+const { getEntities } =  require("./src/repository/thingRepository");
 const app = express();
 const port = 3030;
 
-app.get('/',(req,res)=>{
-    res.send("Hello World!!");
+app.get('/',async(req,res)=>{
+    res.send(await getEntities());
+    /* res.send("Hello World!!"); */
 })
 
 app.get('/things',async (req,res)=>{

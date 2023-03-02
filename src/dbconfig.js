@@ -1,7 +1,8 @@
-const {TypeDB, SessionType, TransactionType} = require("typedb-client");
+const { TypeDB, SessionType, TransactionType } = require("typedb-client");
 const {
     createJsonFromThing,
     createJsonFromRelation,
+    createJsonFromCompleteThing
 } = require("./jsonEntityConstructor.js");
 
 const database = "API_ASSET#TYPEDB"; //inserire nome database
@@ -11,15 +12,13 @@ async function getThings() {
     const session = await client.session(database, SessionType.DATA);
     const readTransaction = await session.transaction(TransactionType.READ);
     // Stream<ConceptMap>
-    let answerStream = readTransaction.query.match(
-        "match $x isa digital-twin;get $x;"
-    );
+    let answerStream = readTransaction.query.match("match $x isa digital-twin;get $x;");
     // ConceptMap[]
     const thingsConcepts = await answerStream.collect();
     // Entity[]
     let things = thingsConcepts.map((t) => t.get("x").asEntity());
     let thingsArray = [];
-    for await (const thing of things) {
+    for (const thing of things) {
         const thingToAdd = await createJsonFromThing(readTransaction, thing);
         thingsArray.push(thingToAdd);
     }
@@ -41,6 +40,63 @@ async function getThings() {
     await session.close();
     await client.close();
     return thingsArray;
+}
+
+const getThingsByDB = async () => {
+    const client = TypeDB.coreClient("localhost:1729");
+    const session = await client.session(database, SessionType.DATA);
+    const readTransaction = await session.transaction(TransactionType.READ);
+    // Stream<ConceptMap>
+    let answerStream = readTransaction.query.match("match $t isa digital-twin;");
+    const thingsConcepts = await answerStream.collect();
+    let things = thingsConcepts.map(t => t.get('t').asEntity());
+    await readTransaction.close();
+    await session.close();
+    await client.close();
+    return things;
+}
+
+const getCompleteThing = async () => {
+    const client = TypeDB.coreClient("localhost:1729");
+    const session = await client.session(database, SessionType.DATA);
+    const readTransaction = await session.transaction(TransactionType.READ);
+    const myThings = await getThingsByDB();
+    let rels = [];
+    for (const thing of myThings) {
+        let answerStream = readTransaction.query.match("match $t iid " + thing.iid + "; $rel ($t,$v) isa relation, has $a; get $rel,$a;");
+        let concepts = await answerStream.collect();
+        let attributesOfRel = concepts.map(a => a.get('rel'));
+        let relationsArray = [];
+        for (const relation of attributesOfRel) {
+            const attributesCollection = await relation
+                .asRemote(readTransaction)
+                .getHas(true)
+                .collect();
+            const attributes = attributesCollection
+                .map((a) => a.asAttribute())
+                .map((a) => {
+                    return a.value;
+                });
+
+            const playersByRoleType = await relation
+                .asRemote(readTransaction)
+                .getPlayersByRoleType();
+            relationsArray.push({a:attributes[0],b:playersByRoleType});
+        }
+        rels.push({ thingId:thing.type.label.name, features: relationsArray });
+    };
+
+    /* let relations = thingsConcepts.map(r => r.get('r').asRelation());
+    let thingsArray = [];
+    for (const thing of things) {
+        
+        const thingToAdd = await createJsonFromCompleteThing(readTransaction, thing);
+        thingsArray.push(thingToAdd);
+    }  */
+    await readTransaction.close();
+    await session.close();
+    await client.close();
+    return rels;
 }
 
 async function getRelations() {
@@ -120,12 +176,12 @@ async function deleteThing(reqQuery) {
 
 
 /* async function openSession (database) {
-	const client = TypeDB.coreClient("localhost:1729");
-	const session = await client.session(database, SessionType.DATA);
-	// session is open
-	await session.close();
-	//session is closed
-	client.close();
+    const client = TypeDB.coreClient("localhost:1729");
+    const session = await client.session(database, SessionType.DATA);
+    // session is open
+    await session.close();
+    //session is closed
+    client.close();
 }; */
 
 //TODO: cancellare
@@ -184,7 +240,7 @@ async function openSession(sessionType) {
     const client = TypeDB.coreClient("localhost:1729");
     const session = await client.session(database, sessionType);
     // session is open
-    return {client: client, session: session};
+    return { client: client, session: session };
 }
 
 async function createTransaction(session, transactionType) {
@@ -214,25 +270,26 @@ module.exports = {
     getRelations,
     getPeople,
     deleteThing,
+    getCompleteThing
 };
 
 /*async function createTransactions (database) {
-	const client = TypeDB.coreClient("localhost:1729");
-	const session = await client.session(database, SessionType.DATA);
+    const client = TypeDB.coreClient("localhost:1729");
+    const session = await client.session(database, SessionType.DATA);
 
-	// creating a write transaction
-	const writeTransaction = await session.transaction(TransactionType.WRITE); // write transaction is open
-	// to persist changes, write transaction must always be committed/closed
-	await writeTransaction.commit();
+    // creating a write transaction
+    const writeTransaction = await session.transaction(TransactionType.WRITE); // write transaction is open
+    // to persist changes, write transaction must always be committed/closed
+    await writeTransaction.commit();
 
-	// creating a read transaction
-	const readTransaction = await session.transaction(TransactionType.READ); // read transaction is open
-	// read transaction must always be closed
-	await readTransaction.close();
-	// a session must always be closed
-	await session.close();
-	// a client must always be closed
-	client.close();
+    // creating a read transaction
+    const readTransaction = await session.transaction(TransactionType.READ); // read transaction is open
+    // read transaction must always be closed
+    await readTransaction.close();
+    // a session must always be closed
+    await session.close();
+    // a client must always be closed
+    client.close();
 } */
 
 //openSession("prova");
