@@ -1,102 +1,173 @@
 const { TypeDB, SessionType, TransactionType } = require("typedb-client");
 const {
-    createJsonFromThing,
-    createJsonFromRelation,
-    createJsonFromCompleteThing
+    createJsonAllThing,
+    createJsonAllRelation,
+    newAttribute,
 } = require("./jsonEntityConstructor.js");
 
-const database = "API_ASSET#TYPEDB"; //inserire nome database
+const database = "prova"; //inserire nome database
+const EmptyThing = {
+    thingId: '',
+    attributes: {},
+    features: {}
+}
+
+const relationsFromRemoteThing = async (remoteThing) => {
+    return await remoteThing.getRelations().collect();
+}
+
+const attributesFromRemoteThing = async (remoteThing) => {
+    return await remoteThing.getHas(true).collect();
+}
+
+const playersFromRemoteRelation = async (remoteThing) => {
+    return await remoteThing.getPlayersByRoleType();
+}
+
+const distinctAttributes = (myAttributes) => {
+    let iids = [];
+    const attributes = []
+    myAttributes.forEach(a => {
+        if (!iids.includes(a.iid)) { attributes.push(a); iids.push(a.iid) };
+    });
+    return attributes;
+}
+
+/**
+ * create an Object from an Array
+ * @param {any[]} attributesArray 
+ * @returns {}
+ */
+const arrayToObject = (attributesArray) => {
+    let attributeObj = {};
+    attributesArray.forEach(element => Object.assign(attributeObj,element))
+    return attributeObj;
+}
+
+
+const prova1 = async (thingId) => {
+    const client = TypeDB.coreClient("localhost:1729");
+    const session = await client.session(database, SessionType.DATA);
+    const readTransaction = await session.transaction(TransactionType.READ);
+    let thing = EmptyThing;
+    let answerStream = readTransaction.query
+        .match("match $x isa entity, has thingId '" + thingId + "', has attribute $a;get $a;");
+    let response = await answerStream.collect();
+    let myAttributes = response.map(r => r.get('a').asAttribute()).map(a => newAttribute(a));
+    let attributes = arrayToObject(myAttributes);
+    delete attributes.thingId;
+    let result = {
+        thingId: myAttributes.find(element => Object.keys(element).includes('thingId'))['thingId'],
+        attributes:attributes
+    }
+    await readTransaction.close();
+    await session.close();
+    await client.close();
+    return result;
+}
+
+const createThingObject = (attributes,features) =>{
+    let thing = EmptyThing;
+    thing.thingId = attributes.thingId;
+    delete attributes.thingId;
+    thing.attributes = attributes;
+    //TODO:aggiungere features
+    thing.features = arrayToObject(features);
+    return thing;
+}
+
+const prova2 = async (thingId) => {
+    const client = TypeDB.coreClient("localhost:1729");
+    const session = await client.session(database, SessionType.DATA);
+    const readTransaction = await session.transaction(TransactionType.READ);
+    let answerStream = readTransaction.query.match("match $x isa entity, has thingId '" + thingId + "';get $x;");
+    let response = await answerStream.collect();
+    let entity = response[0].get('x').asEntity();
+    const remoteEntity = entity.asRemote(readTransaction);
+    const attributesFromRemote = await attributesFromRemoteThing(remoteEntity);
+    let realAttributes = arrayToObject(attributesFromRemote.map(a => newAttribute(a)));
+    const relationsFromRemote = await relationsFromRemoteThing(remoteEntity);
+    const result = await relationsFromRemote[0].asRemote(readTransaction).getPlayersByRoleType();
+    let realRelations = [];
+    for await (const [key, value] of result) {
+        for (const element of value) {
+            try {
+                const thing = await createJsonOnlyIDThing(
+                    transaction,
+                    element.asEntity()
+                );
+                players.push({ [key._label._name]: thing });
+            } catch (error) {
+                console.log(error);
+            }
+        }
+    }
+    console.log(realRelations)
+    
+    /* let responseThing = await response[0].map(r => r.get('x').asEntity()).asRemote(readTransaction);
+    let attributes = attributesFromRemoteThing(responseThing); */
+
+    /* let myAttributes = response.map(r => r.get('a').asAttribute()).map(a => newAttribute(a));
+    let attributes = realAttributes(myAttributes);
+    delete attributes.thingId;
+    let result = {
+        thingId: myAttributes.find(element => Object.keys(element).includes('thingId'))['thingId'],
+        attributes:attributes
+    } */
+    await readTransaction.close();
+    await session.close();
+    await client.close();
+    return realRelations.values();
+}
+
+/* const getAThing = async (thingId) => {
+    const client = TypeDB.coreClient("localhost:1729");
+    const session = await client.session(database, SessionType.DATA);
+    const readTransaction = await session.transaction(TransactionType.READ);
+    let answerStream = readTransaction.query.match(
+        "match $x isa entity, has thingId '" + thingId + "'; get $x;"
+    );
+    const thingsConcepts = await answerStream.collect();
+    const things = thingsConcepts.map((t) => t.get("x").asEntity())[0];
+    const thing = await createJsonAllThing(readTransaction, things);
+    await readTransaction.close();
+    await session.close();
+    await client.close();
+    return thing;
+} */
+
+//TODO: completare
+const createThing = (payload) => {
+    /* const client = TypeDB.coreClient("localhost:1729");
+    const session = await client.session(database, SessionType.DATA);
+    const writeTransaction = await session.transaction(TransactionType.WRITE);
+    let answerStream = writeTransaction.query.insert("insert $x isa '" + type + "', has thingId '" + thingId + "'; get $x;");
+    const createdThing = null;
+    await writeTransaction.commit();
+    await session.close();
+    await client.close();
+    return createdThing; */
+}
 
 async function getThings() {
     const client = TypeDB.coreClient("localhost:1729");
     const session = await client.session(database, SessionType.DATA);
     const readTransaction = await session.transaction(TransactionType.READ);
     // Stream<ConceptMap>
-    let answerStream = readTransaction.query.match("match $x isa digital-twin;get $x;");
+    let answerStream = readTransaction.query.match("match $x isa entity;get $x;");
     // ConceptMap[]
     const thingsConcepts = await answerStream.collect();
     // Entity[]
     let things = thingsConcepts.map((t) => t.get("x").asEntity());
     let thingsArray = [];
-    for (const thing of things) {
-        const thingToAdd = await createJsonFromThing(readTransaction, thing);
+    for await (const thing of things) {
+        const thingToAdd = await createJsonAllThing(readTransaction, thing);
         thingsArray.push(thingToAdd);
     }
-    /* 	const boh = await result.asRemote(readTransaction).getHas(true).collect();
-      const attributes = boh.map(a => a.asAttribute()).map(a => { return { [a.type._label._name]: a.value } }); */
-
-    /* const result = things.map(p => new JsonEntityConstructor(p.get('x'), p.get('a'))
-          .createJson()); */
-
-    /* 	const label = things.map(a => a.get("label").asAttribute()).map(a => { return { type: a.type._label._name, value: a.value } });//.map(v => v.iid);
-          const id = things.map(a => a.get("thingId").asAttribute())//.map(v => v.iid);
-          const dt = things.map(a => a.get('x')); */
-    /* 	const result = {
-              entities: dt,
-              labels: label,
-              ids: id
-          }; */
     await readTransaction.close();
     await session.close();
     await client.close();
     return thingsArray;
-}
-
-const getThingsByDB = async () => {
-    const client = TypeDB.coreClient("localhost:1729");
-    const session = await client.session(database, SessionType.DATA);
-    const readTransaction = await session.transaction(TransactionType.READ);
-    // Stream<ConceptMap>
-    let answerStream = readTransaction.query.match("match $t isa digital-twin;");
-    const thingsConcepts = await answerStream.collect();
-    let things = thingsConcepts.map(t => t.get('t').asEntity());
-    await readTransaction.close();
-    await session.close();
-    await client.close();
-    return things;
-}
-
-const getCompleteThing = async () => {
-    const client = TypeDB.coreClient("localhost:1729");
-    const session = await client.session(database, SessionType.DATA);
-    const readTransaction = await session.transaction(TransactionType.READ);
-    const myThings = await getThingsByDB();
-    let rels = [];
-    for (const thing of myThings) {
-        let answerStream = readTransaction.query.match("match $t iid " + thing.iid + "; $rel ($t,$v) isa relation, has $a; get $rel,$a;");
-        let concepts = await answerStream.collect();
-        let attributesOfRel = concepts.map(a => a.get('rel'));
-        let relationsArray = [];
-        for (const relation of attributesOfRel) {
-            const attributesCollection = await relation
-                .asRemote(readTransaction)
-                .getHas(true)
-                .collect();
-            const attributes = attributesCollection
-                .map((a) => a.asAttribute())
-                .map((a) => {
-                    return a.value;
-                });
-
-            const playersByRoleType = await relation
-                .asRemote(readTransaction)
-                .getPlayersByRoleType();
-            relationsArray.push({a:attributes[0],b:playersByRoleType});
-        }
-        rels.push({ thingId:thing.type.label.name, features: relationsArray });
-    };
-
-    /* let relations = thingsConcepts.map(r => r.get('r').asRelation());
-    let thingsArray = [];
-    for (const thing of things) {
-        
-        const thingToAdd = await createJsonFromCompleteThing(readTransaction, thing);
-        thingsArray.push(thingToAdd);
-    }  */
-    await readTransaction.close();
-    await session.close();
-    await client.close();
-    return rels;
 }
 
 async function getRelations() {
@@ -110,33 +181,13 @@ async function getRelations() {
     let relations = relationConcept.map((t) => t.get("x").asRelation());
     let relationsArray = [];
     for await (const relation of relations) {
-        const relToAdd = await createJsonFromRelation(readTransaction, relation);
+        const relToAdd = await createJsonAllRelation(readTransaction, relation);
         relationsArray.push(relToAdd);
     }
     await readTransaction.close();
     await session.close();
     await client.close();
     return relationsArray;
-}
-
-async function getPeople() {
-    const client = TypeDB.coreClient("localhost:1729");
-    const session = await client.session(database, SessionType.DATA);
-    const readTransaction = await session.transaction(TransactionType.READ);
-    let answerStream = await readTransaction.query.match(
-        "match $x isa person; get $x;"
-    );
-    const allPeople = await answerStream.collect();
-    let people = allPeople.map((t) => t.get("x").asEntity());
-    let array = [];
-    for await (const person of people) {
-        const personToAdd = await createJsonFromThing(readTransaction, person);
-        array.push(personToAdd);
-    }
-    await readTransaction.close();
-    await session.close();
-    await client.close();
-    return array;
 }
 
 
@@ -268,9 +319,9 @@ module.exports = {
     runBasicQueries,
     getThings,
     getRelations,
-    getPeople,
+    /* getAThing */prova2,
     deleteThing,
-    getCompleteThing
+    createThing,
 };
 
 /*async function createTransactions (database) {

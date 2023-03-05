@@ -1,43 +1,52 @@
 const express = require("express");
 const typeDB = require("./src/dbconfig");
 const { TypeDB, SessionType, TransactionType } = require("typedb-client");
-const { getEntities } =  require("./src/repository/thingRepository");
 const app = express();
 const port = 3030;
 
-app.get('/',async(req,res)=>{
-    res.send(await getEntities());
-    /* res.send("Hello World!!"); */
+const newMessage = (type,message)=>{
+    return {[type]:message};
+}
+
+app.get('/', (req, res) => {
+    /* const payload = '{"person":{"attributes":[{"thingId":"mario_rossi"},{"label":"Mario Rossi"},{"tipology":"department_director"}],"features":[{"reference":{"attributes":[{"relationId":"department_ref2"}],"roles":[{"referent":{"person":[{"thingId":"mario_rossi"}]}},{"referenced":{"space":[{"thingId":"polo_ludovici_a"}]}}]}},{"reference":{"attributes":[{"relationId":"department_ref"}],"roles":[{"referent":{"person":[{"thingId":"mario_rossi"}]}},{"referenced":{"space":[{"thingId":"polo_ludovici_b"}]}}]}}]}}'
+    const parsed = JSON.parse(payload);
+    res.send(typeDB.createThing(parsed) *//* .toString() *//* ); */
+    res.send("Hello World!!");
 })
 
-app.get('/things',async (req,res)=>{
+app.get('/things', async (req, res) => {
     res.send(await typeDB.getThings());
 })
 
-app.get("/relations", async (req, res) => {
-  res.send(await typeDB.getRelations());
-});
+/* app.post('things',async (req,res)=>{
+    const body = req.body;
+    try {
+        const newThing = await typeDB.createThing(body);
+        res.send(newThing);
+    } catch (error) {
+        res.sendStatus(400).send(newMessage('error','impossible to create this thing'));
+    }
+}) */
 
-app.get("/people", async (req, res) => {
-  res.send(await typeDB.getPeople());
+app.get('/things/:thingId', async (req, res) => {
+    const {thingId} = req.params;
+    res.send(await typeDB.prova2(thingId));
+})
+
+app.get("/relations", async (req, res) => {
+    res.send(await typeDB.getRelations());
 });
 
 app.delete("/deleteThing", async (req, res) => {
-    res.send(await typeDB.deleteThing(req.query));
+    try {
+        await typeDB.deleteThing(req.query);
+        res.send({ success: 'successo' });
+    } catch (error) {
+        res.sendStatus(400)
+    }
 });
 
-app.get("/allPersons",async (req,res)=>{
-    /* const clientAndSession = await typeDB.openSession(SessionType.DATA);
-    const readTransaction = await typeDB.createTransaction(clientAndSession.session,TransactionType.READ);
-    const query = await readTransaction.query.match("match $x isa person; get $x;");
-    const persons = await query.collect();
-    const result = await persons.map(person => person.get("x"));
-    res.send(result); */
-    res.send(await typeDB.runBasicQueries());
-    
-})
-
-
-app.listen(port,()=>{
+app.listen(port, () => {
     console.log(`Example app listening on port ${port}`);
 })
