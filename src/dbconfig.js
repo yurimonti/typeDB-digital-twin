@@ -12,6 +12,99 @@ const EmptyThing = {
     features: {}
 }
 
+const getConceptRelation = async (conceptMap) => {
+    let result = {};
+    for await (const concept of conceptMap) {
+        console.log(concept);
+        const concepts = concept.get('rel');
+        const boh = concept.get('role1');
+        const relatedTo = concept.get('t');
+        result = {...result,[concepts.type.label.name]:{[boh.label.name]:{[relatedTo.type.label.name]:relatedTo.value}}};
+        //result = { ...result, [concepts.iid]: concepts.type.label.name };
+    }
+    return result;
+}
+
+const getConceptAttribute = async (conceptMap) => {
+    let result = {};
+    for await (const concept of conceptMap) {
+        const concepts = concept.get('a');
+        //const relations = concepts.foreach(c => stampaRel(c.get('rel')));
+        /* result.push(concept.get('a')); */
+        result = { ...result, [concepts.type.label.name]: concepts.value };
+    }
+    return result;
+}
+
+/* const getConceptRole = async (conceptMap) => {
+    let result = {};
+    for await (const concept of conceptMap) {
+        const conceptsRole1 = concept.get('role1');
+        console.log(conceptsRole1);
+        const thingId = concept.get('t');
+        result = { ...result, [conceptsRole1.label.scope]: conceptsRole1.label.name };
+    }
+    return result;
+} */
+
+//TODO: GUARDARE SOLO QUESTO METODO.
+async function metodoProva(thingId) {
+    const client = TypeDB.coreClient("localhost:1729");
+    const session = await client.session(database, SessionType.DATA);
+    const readTransaction = await session.transaction(TransactionType.READ);
+    //query per ragruppare tutto secondo l'entità specifica: per vedere provare query su db.
+    //l'obbiettivo da ragiungere è di tornare le features con solo il ruolo ricoperto dall'entità..
+    //il problema è trasformare il tutto in json in modo corretto.
+    // features e attributes non devono essere array di oggetti ma un oggetto unico (VEDERE DITTO), poichè..
+    //è più facile da trasformare e da modificare attributi secondo la query data dalla request.
+    const query = [
+        "match",
+        " $x isa entity, has thingId '" + thingId + "', has attribute $a;",
+        " $y isa entity, has thingId $t;",
+        " $rel($role1:$x,$role2:$y) isa relation;",
+        " get $a,$x,$rel,$role1,$role2,$t;",
+        " group $x;"
+    ];
+    //Stream of conceptMapGroup --> vedere documentazione (si capisce poco)
+    const queryResult = readTransaction.query.matchGroup(query.join(""));
+    //Array of conceptMapGroup --> vedere documentazione (si capisce poco)
+    const collector = await queryResult.collect();
+    let results = null;
+    //for each conceptMapGroup in Array
+    for await (const element of collector) {
+        //Array of ConceptMap --> vedere documentazione (si capisce poco)
+        let conceptMap = element.conceptMaps;
+        //Prova per le relazioni
+        const relations = await getConceptRelation(conceptMap);
+        //Prova per attributi --> questo funziona per certo
+        const attributes = await getConceptAttribute(conceptMap);
+        //const roles = await getConceptRole(conceptMap);
+        results = { attributes: attributes, features: relations/* , roles: roles */ };
+    }
+    await readTransaction.close();
+    await session.close();
+    await client.close();
+    return results;
+}
+
+/* const getCompleteThing = async (thingId) => {
+    const client = TypeDB.coreClient("localhost:1729");
+    const session = await client.session(database, SessionType.DATA);
+    const readTransaction = await session.transaction(TransactionType.READ);
+    const query = "match $x isa entity, has thingId '" + thingId + "', has attribute $a;$rel($x,$y);get $a,$x,$rel;group $x;"
+    const queryResult = readTransaction.query.matchGroup(query);
+    const collector = await queryResult.collect();
+    const results = [];
+    for await (const element of collector) {
+        let concepts = element.conceptMaps[0];
+        console.log(concepts);
+    }
+    await readTransaction.close();
+    await session.close();
+    await client.close();
+    return results;
+} */
+
 const relationsFromRemoteThing = async (remoteThing) => {
     return await remoteThing.getRelations().collect();
 }
@@ -40,7 +133,7 @@ const distinctAttributes = (myAttributes) => {
  */
 const arrayToObject = (attributesArray) => {
     let attributeObj = {};
-    attributesArray.forEach(element => Object.assign(attributeObj,element))
+    attributesArray.forEach(element => Object.assign(attributeObj, element))
     return attributeObj;
 }
 
@@ -58,7 +151,7 @@ const prova1 = async (thingId) => {
     delete attributes.thingId;
     let result = {
         thingId: myAttributes.find(element => Object.keys(element).includes('thingId'))['thingId'],
-        attributes:attributes
+        attributes: attributes
     }
     await readTransaction.close();
     await session.close();
@@ -66,7 +159,7 @@ const prova1 = async (thingId) => {
     return result;
 }
 
-const createThingObject = (attributes,features) =>{
+const createThingObject = (attributes, features) => {
     let thing = EmptyThing;
     thing.thingId = attributes.thingId;
     delete attributes.thingId;
@@ -103,7 +196,7 @@ const prova2 = async (thingId) => {
         }
     }
     console.log(realRelations)
-    
+
     /* let responseThing = await response[0].map(r => r.get('x').asEntity()).asRemote(readTransaction);
     let attributes = attributesFromRemoteThing(responseThing); */
 
@@ -320,6 +413,7 @@ module.exports = {
     getThings,
     getRelations,
     /* getAThing */prova2,
+    metodoProva,
     deleteThing,
     createThing,
 };

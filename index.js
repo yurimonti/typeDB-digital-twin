@@ -8,11 +8,12 @@ const newMessage = (type,message)=>{
     return {[type]:message};
 }
 
-app.get('/', (req, res) => {
+app.get('/', async(req, res) => {
     /* const payload = '{"person":{"attributes":[{"thingId":"mario_rossi"},{"label":"Mario Rossi"},{"tipology":"department_director"}],"features":[{"reference":{"attributes":[{"relationId":"department_ref2"}],"roles":[{"referent":{"person":[{"thingId":"mario_rossi"}]}},{"referenced":{"space":[{"thingId":"polo_ludovici_a"}]}}]}},{"reference":{"attributes":[{"relationId":"department_ref"}],"roles":[{"referent":{"person":[{"thingId":"mario_rossi"}]}},{"referenced":{"space":[{"thingId":"polo_ludovici_b"}]}}]}}]}}'
     const parsed = JSON.parse(payload);
     res.send(typeDB.createThing(parsed) *//* .toString() *//* ); */
-    res.send("Hello World!!");
+    //res.send("Hello World!!");
+    res.send(await typeDB.metodoProva('camerino'));
 })
 
 app.get('/things', async (req, res) => {
