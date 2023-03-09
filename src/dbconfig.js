@@ -12,26 +12,32 @@ const EmptyThing = {
     features: {}
 }
 //TODO: riempire array di features per ogni ciclo, poi aggiungerlo a result in separata sede.
-const getConceptRelation = async (conceptMap) => {
+const getConceptRelation = async (conceptMap,thingId) => {
     let result = [];
     for await (const concept of conceptMap) {
         //console.log(concept);
         const rel = concept.get('rel');
-        const role = concept.get('role1');
+        const relAttribute = concept.get('relAtt');
+        const role1 = concept.get('role1');
+        const role2 = concept.get('role2');
         const relatedTo = concept.get('t');
-        result.push();
-        /* result = {...result,feature:{[rel.type.label.name]:{
-            [role.label.name]:{
+        // const requestedThing = concept.get('x');
+        // const attributeThing = concept.get('a');
+        result.push({...result,feature:{[relAttribute.type.label.name]:relAttribute.value,[rel.type.label.name]:{
+            [role1.label.name]:{
                 [relatedTo.type.label.name]:relatedTo.value
+            },[role2.label.name]:{
+                [relatedTo.type.label.name]:thingId
             }
-        }}}; */
+        }}});
         //result = {...result,[rel.type.label.name]:{[role.label.name]:{[relatedTo.type.label.name]:relatedTo.value}}};
         //result = { ...result, [concepts.iid]: concepts.type.label.name };
     }
+    console.log(result);
     return result;
 }
 
-const getConceptAttribute = async (conceptMap,attributes) => {
+const getConceptAttribute = async (conceptMap, attributes) => {
     for await (const concept of conceptMap) {
         const attribute = concept.get('a');
         attributes.push(attribute);
@@ -57,42 +63,47 @@ async function metodoProva(thingId) {
     const client = TypeDB.coreClient("localhost:1729");
     const session = await client.session(database, SessionType.DATA);
     const readTransaction = await session.transaction(TransactionType.READ);
-    //query per ragruppare tutto secondo l'entità specifica: per vedere provare query su db.
-    //l'obbiettivo da ragiungere è di tornare le features con solo il ruolo ricoperto dall'entità..
-    //il problema è trasformare il tutto in json in modo corretto.
-    // features e attributes non devono essere array di oggetti ma un oggetto unico (VEDERE DITTO), poichè..
-    //è più facile da trasformare e da modificare attributi secondo la query data dalla request.
+    // *query per ragruppare tutto secondo l'entità specifica: per vedere provare query su db.
+    // *l'obbiettivo da ragiungere è di tornare le features con solo il ruolo ricoperto dall'entità..
+    // *il problema è trasformare il tutto in json in modo corretto.
+    // *features e attributes non devono essere array di oggetti ma un oggetto unico (VEDERE DITTO), poichè..
+    // *è più facile da trasformare e da modificare attributi secondo la query data dalla request.
+
     const query = [
         "match",
         " $x isa entity, has thingId '" + thingId + "', has attribute $a;",
         " $y isa entity, has thingId $t;",
-        " $rel($role1:$x,$role2:$y) isa relation;",
-        " get $a,$x,$rel,$role1,$role2,$t;",
+        " $role1 sub! relation:role;",
+        " $role2 sub! relation:role;",
+        " $rel($role1:$x,$role2:$y) isa relation, has attribute $relAtt;",
+        " get $a,$x,$rel,$t,$role1,$role2,$relAtt;",
         " group $x;"
     ];
-    //Stream of conceptMapGroup --> vedere documentazione (si capisce poco)
+    // *Stream of conceptMapGroup --> vedere documentazione (si capisce poco)
     const queryResult = readTransaction.query.matchGroup(query.join(""));
-    //Array of conceptMapGroup --> vedere documentazione (si capisce poco)
+    // *Array of conceptMapGroup --> vedere documentazione (si capisce poco)
     const collector = await queryResult.collect();
     let attributes = [];
-    //for each conceptMapGroup in Array
+    //console.log(collector);
+    // *for each conceptMapGroup in Array
     for await (const element of collector) {
-        //Array of ConceptMap --> vedere documentazione (si capisce poco)
+        // *Array of ConceptMap --> vedere documentazione (si capisce poco)
         let conceptMap = element.conceptMaps;
-        //conceptMap.forEach( concept => console.log('map',concept));
-
-        //console.log(element);
-        //Prova per le relazioni
-        const relations = await getConceptRelation(conceptMap);
-        //Prova per attributi --> questo funziona per certo
-        await getConceptAttribute(conceptMap,attributes);
-        //const roles = await getConceptRole(conceptMap);
-        results = { attributes: attributes, features: relations/* , roles: roles */ };
+        //console.log(conceptMap.map(c => c.concepts()));
+        // conceptMap.forEach( concept => console.log('map',concept));
+        // console.log(element);
+        // Prova per le relazioni
+        const relations = await getConceptRelation(conceptMap,thingId);
+        // Prova per attributi --> questo funziona per certo
+        //await getConceptAttribute(conceptMap, attributes);
+        // const roles = await getConceptRole(conceptMap);
+        /*results = { attributes: attributes, features: relations, roles: roles };*/
+        attributes.push(relations);
     }
     await readTransaction.close();
     await session.close();
     await client.close();
-    return results;
+    return attributes;
 }
 
 /* const getCompleteThing = async (thingId) => {
