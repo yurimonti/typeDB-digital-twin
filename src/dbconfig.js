@@ -12,7 +12,7 @@ const EmptyThing = {
     features: {}
 }
 //TODO: riempire array di features per ogni ciclo, poi aggiungerlo a result in separata sede.
-const getConceptRelation = async (conceptMap,thingId) => {
+const getConceptRelation = async (conceptMap, thingId) => {
     let result = [];
     for await (const concept of conceptMap) {
         //console.log(concept);
@@ -23,17 +23,32 @@ const getConceptRelation = async (conceptMap,thingId) => {
         const relatedTo = concept.get('t');
         // const requestedThing = concept.get('x');
         // const attributeThing = concept.get('a');
-        result.push({...result,feature:{[relAttribute.type.label.name]:relAttribute.value,[rel.type.label.name]:{
+        result.push({
+            feature: {
+                [rel.type.label.name]: {
+                    
+                    [relAttribute.value]: {
+                        [role1.label.name]: {
+                            [relatedTo.type.label.name]: thingId
+                        }, [role2.label.name]: {
+                            [relatedTo.type.label.name]: relatedTo.value
+                        }
+                    }
+                }
+            }
+        });
+        //TODO: cancellato un attimo
+        /* result.push({...result,feature:{[relAttribute.type.label.name]:relAttribute.value,[rel.type.label.name]:{
             [role1.label.name]:{
                 [relatedTo.type.label.name]:relatedTo.value
             },[role2.label.name]:{
                 [relatedTo.type.label.name]:thingId
             }
-        }}});
+        }}}); */
         //result = {...result,[rel.type.label.name]:{[role.label.name]:{[relatedTo.type.label.name]:relatedTo.value}}};
         //result = { ...result, [concepts.iid]: concepts.type.label.name };
     }
-    console.log(result);
+    //console.log(result);
     return result;
 }
 
@@ -89,11 +104,13 @@ async function metodoProva(thingId) {
     for await (const element of collector) {
         // *Array of ConceptMap --> vedere documentazione (si capisce poco)
         let conceptMap = element.conceptMaps;
+        let owner = conceptMap.owner;
+        console.log(owner);
         //console.log(conceptMap.map(c => c.concepts()));
         // conceptMap.forEach( concept => console.log('map',concept));
         // console.log(element);
         // Prova per le relazioni
-        const relations = await getConceptRelation(conceptMap,thingId);
+        const relations = await getConceptRelation(conceptMap, thingId);
         // Prova per attributi --> questo funziona per certo
         //await getConceptAttribute(conceptMap, attributes);
         // const roles = await getConceptRole(conceptMap);
