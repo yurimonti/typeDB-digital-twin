@@ -11,21 +11,21 @@ app.get('/', (req, res) => {
 })
 
 /**
- * Get of all the things
+ * Get of all the things.
  */
 app.get('/things', async (req, res) => {
     res.send(await typeDB.getThings());
 })
 
 /**
- * Get of all the relations
+ * Get of all the relations.
  */
 app.get("/relations", async (req, res) => {
     res.send(await typeDB.getRelations());
 });
 
 /**
- * Deletes only one thing with the specified thingId
+ * Deletes only one thing with the specified thingId.
  */
 app.delete('/deleteThing/:thingId', async (req, res) => {
     try {
@@ -38,7 +38,7 @@ app.delete('/deleteThing/:thingId', async (req, res) => {
 })
 
 /**
- * Deletes only one relation with the specified relationId
+ * Deletes only one relation with the specified relationId.
  */
 app.delete('/deleteRelation/:relationId', async (req, res) => {
     try {
@@ -51,7 +51,7 @@ app.delete('/deleteRelation/:relationId', async (req, res) => {
 })
 
 /**
- * Deletes only one attribute of a specified thing
+ * Deletes only one attribute of a specified thing.
  */
 app.delete('/deleteThingAttribute/:thingId/attribute/:attributeName', async (req, res) => {
     try {
@@ -63,7 +63,7 @@ app.delete('/deleteThingAttribute/:thingId/attribute/:attributeName', async (req
 })
 
 /**
- * Deletes more than one thing with the specified thingId
+ * Deletes more than one thing with the specified thingId.
  */
 app.delete("/deleteMultipleThings", async (req, res) => {
     try {
@@ -75,7 +75,7 @@ app.delete("/deleteMultipleThings", async (req, res) => {
 });
 
 /**
- * Deletes all attributes of the specified thing
+ * Deletes all attributes of the specified thing.
  */
 //todo controllare se cancella thingId
 app.delete("/deleteMultipleThingsAttributes", async (req, res) => {
@@ -88,7 +88,7 @@ app.delete("/deleteMultipleThingsAttributes", async (req, res) => {
 });
 
 /**
- * Deletes more than one relation with the specified relationId
+ * Deletes more than one relation with the specified relationId.
  */
 app.delete("/deleteMultipleRelations", async (req, res) => {
     try {
@@ -100,7 +100,7 @@ app.delete("/deleteMultipleRelations", async (req, res) => {
 });
 
 /**
- * Post to add a new thing
+ * Post to add a new thing.
  */
 app.post('/newThing/:thingId', async (req, res) => {
     try {

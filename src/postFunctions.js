@@ -1,10 +1,13 @@
 const connection = require("./clientConfig.js");
 
+
+
 /**
- * Method to add a new thing to the database
+ * Method to add a new thing to the database.
+ *
  * @param thingId id of the thing
  * @param body body of the request with attributes and features
- * @returns {Promise<Stream<ConceptMap>>}
+ * @returns {Promise<Stream<ConceptMap>>} a {@link Promise} that represents the result of the insertion of a new thing
  */
 async function addThing(thingId, body) {
     const conn = await connection.openConnection(false, true);
@@ -28,15 +31,17 @@ async function addThing(thingId, body) {
 }
 
 /**
- * Method to add attributes to a new thing
+ * Method to add attributes to a new thing.
+ *
  * @param attributes attributes to insert
  * @param body body of the request containing the attributes
  * @param thingId id of the new thing
- * @returns {string} query to insert new thing with attributes
+ * @returns {string} the query to insert a new thing with attributes
  */
  function addAttributes(attributes, body, thingId) {
-    const map = Object.entries(body.attributes);
     let category = "";
+    const map = Object.entries(body.attributes);
+
     map.forEach(attribute => {
         if (typeof attribute[1] === 'string' && isNaN(Date.parse(attribute[1].toString())))
             attributes = attributes.concat("; $x has " + attribute[0] + " '" + attribute[1] + "'")
@@ -50,13 +55,15 @@ async function addThing(thingId, body) {
 }
 
 /**
- * Method to add new feature of a thing
+ * Method to add new feature of a thing.
+ *
  * @param body body of the request
  * @returns {string} query to add a relation
  */
  function addFeatures(body) {
-    const map = Object.entries(body.features);
     let id1, id2, role1, role2, rel, relId;
+    const map = Object.entries(body.features);
+
     map.forEach(feature => {
         rel = feature[0];
         Object.entries(feature[1]).forEach(relation => {

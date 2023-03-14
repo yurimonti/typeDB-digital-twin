@@ -1,18 +1,14 @@
-const {
-    createJsonAllThing,
-    createJsonAllRelation,
-} = require("./jsonEntityConstructor.js");
 const connection = require("./clientConfig.js");
+const { createJsonAllThing, createJsonAllRelation} = require("./jsonEntityConstructor.js");
 
 
 
 /**
- * Gets all things
+ * Gets all things.
  *
  * @returns {Promise<*[]>} a Promise that represents all the things contained in a typedb server
  */
 async function getThings() {
-
     const conn = await connection.openConnection(false, false);
 
     // Stream<ConceptMap>
@@ -47,12 +43,11 @@ async function getThings() {
 }
 
 /**
- * Gets all relations and roles
+ * Gets all relations and roles.
  *
  * @returns {Promise<*[]>} a Promise that represents all the relations and roles contained in a typedb server
  */
 async function getRelations() {
-
     const conn = await connection.openConnection(false, false);
 
     let answerStream = conn.transactionRef.query.match("match $x isa relation;get $x;");
@@ -68,6 +63,7 @@ async function getRelations() {
     await connection.closeConnection(conn);
     return relationsArray;
 }
+
 
 module.exports = {
     getThings,
