@@ -1,15 +1,9 @@
-const {TypeDB, SessionType, TransactionType} = require("typedb-client");
-// const {
-//     createJsonAllThing,
-//     createJsonAllRelation,
-// } = require("./jsonEntityConstructor.js");
-const database = "API_ASSET#TYPEDB"; //inserire nome database
+const connection = require("./clientConfig.js");
 
 
 async function addThing(thingId, body) {
-    const client = TypeDB.coreClient("localhost:1729");
-    const session = await client.session(database, SessionType.DATA);
-    const postTransaction = await session.transaction(TransactionType.WRITE);
+    const conn = await connection.openConnection(false, true);
+
     let query;
     let attributes = "";
     if (body.attributes !== undefined) {
@@ -17,14 +11,14 @@ async function addThing(thingId, body) {
     } else {
         query = "insert $x isa digital-twin; $x has thingId '" + thingId + "';";
     }
-    let answer = await postTransaction.query.insert(query);
+
+    let answer = await conn.transactionRef.query.insert(query);
     if (body.features !== undefined) {
         query = addFeatures(body);
-        answer = await postTransaction.query.insert(query);
+        answer = await conn.transactionRef.query.insert(query);
     }
-    await postTransaction.commit();
-    await session.close();
-    await client.close();
+
+    await connection.closeConnection(conn)
     return answer;
 }
 
