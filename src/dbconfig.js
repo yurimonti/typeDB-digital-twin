@@ -57,7 +57,7 @@ const getConceptAttribute = async (conceptMap, attributes) => {
 } */
 
 //TODO: GUARDARE SOLO QUESTO METODO.
-async function metodoProva(thingId) {
+async function getAThing(thingId) {
     const client = TypeDB.coreClient("localhost:1729");
     const session = await client.session(database, SessionType.DATA);
     const readTransaction = await session.transaction(TransactionType.READ);
@@ -80,8 +80,9 @@ async function metodoProva(thingId) {
     const queryResult = readTransaction.query.matchGroup(query.join(""));
     // *Array of conceptMapGroup --> vedere documentazione (si capisce poco)
     const collector = await queryResult.collect();
-    // *there is only an element because we get a specific thing
+    // *there is only an element because we got a specific thing
     const thisThingMap = collector[0];
+    console.log(thisThingMap.owner);
     // for each conceptMapGroup in Array
     //for await (const element of collector) {
     // *Array of ConceptMap --> vedere documentazione (si capisce poco)
@@ -103,6 +104,55 @@ async function metodoProva(thingId) {
     await session.close();
     await client.close();
     return thing;
+};
+
+const getThings = async ()=>{
+    const client = TypeDB.coreClient("localhost:1729");
+    const session = await client.session(database, SessionType.DATA);
+    const readTransaction = await session.transaction(TransactionType.READ);
+    // *query per ragruppare tutto secondo l'entità specifica: per vedere provare query su db.
+    // *l'obbiettivo da ragiungere è di tornare le features con solo il ruolo ricoperto dall'entità..
+    // *il problema è trasformare il tutto in json in modo corretto.
+    // *features e attributes non devono essere array di oggetti ma un oggetto unico (VEDERE DITTO), poichè..
+    // *è più facile da trasformare e da modificare attributi secondo la query data dalla request.
+    const query = [
+        "match",
+        " $x isa entity, has attribute $a;",
+        " $y isa entity, has thingId $t;",
+        " $role1 sub! relation:role;",
+        " $role2 sub! relation:role;",
+        " $rel($role1:$x,$role2:$y) isa relation, has attribute $relAtt;",
+        " get $a,$x,$rel,$t,$role1,$role2,$relAtt;",
+        " group $x;"
+    ];
+    // *Stream of conceptMapGroup --> vedere documentazione (si capisce poco)
+    const queryResult = readTransaction.query.matchGroup(query.join(""));
+    // *Array of conceptMapGroup --> vedere documentazione (si capisce poco)
+    const collector = await queryResult.collect();
+    //const thisThingMap = collector[0];
+    let things = [];
+    //* for each conceptMapGroup in Array
+    for await (const element of collector) {
+    // *Array of ConceptMap --> vedere documentazione (si capisce poco)
+    let conceptMap = element.conceptMaps;
+    //let owner = thisThingMap.owner;
+    // Prova per le relazioni
+    const concepts = await getAllConcepts(conceptMap);
+    const attributes = getAttributesFromAConceptGroup(concepts);
+    const features = getRelationsFromAConceptGroup(concepts,attributes.thingId);
+    const thing = {
+        thingId:attributes.thingId,
+        attributes:{},
+        features:features
+    };
+    delete attributes.thingId;
+    thing.attributes = attributes;
+    things.push(thing);
+    }
+    await readTransaction.close();
+    await session.close();
+    await client.close();
+    return things;
 }
 
 /* const getCompleteThing = async (thingId) => {
@@ -260,7 +310,7 @@ const createThing = (payload) => {
     return createdThing; */
 }
 
-async function getThings() {
+/* async function getThings() {
     const client = TypeDB.coreClient("localhost:1729");
     const session = await client.session(database, SessionType.DATA);
     const readTransaction = await session.transaction(TransactionType.READ);
@@ -279,7 +329,7 @@ async function getThings() {
     await session.close();
     await client.close();
     return thingsArray;
-}
+} */
 
 async function getRelations() {
     const client = TypeDB.coreClient("localhost:1729");
@@ -431,7 +481,7 @@ module.exports = {
     getThings,
     getRelations,
     /* getAThing */prova2,
-    metodoProva,
+    metodoProva: getAThing,
     deleteThing,
     createThing,
 };

@@ -13,7 +13,7 @@ app.get('/', async(req, res) => {
     const parsed = JSON.parse(payload);
     res.send(typeDB.createThing(parsed) *//* .toString() *//* ); */
     //res.send("Hello World!!");
-    res.send(await typeDB.metodoProva('camerino'));
+    res.send(await typeDB.getThings('camerino'));
 })
 
 app.get('/things', async (req, res) => {
