@@ -2,7 +2,6 @@ const express = require("express");
 const typeDB = require("./src/dbconfig");
 const deletes = require("./src/deleteFunctions");
 const posts = require("./src/postFunctions");
-const {TypeDB, SessionType, TransactionType} = require("typedb-client");
 const app = express();
 app.use(express.json());
 const port = 3030;
@@ -102,18 +101,6 @@ app.post('/newThing/:thingId', async (req, res) => {
     } catch (e) {
         res.status(400).send({Error: e});
     }
-})
-
-
-app.get("/allPersons", async (req, res) => {
-    /* const clientAndSession = await typeDB.openSession(SessionType.DATA);
-    const readTransaction = await typeDB.createTransaction(clientAndSession.session,TransactionType.READ);
-    const query = await readTransaction.query.match("match $x isa person; get $x;");
-    const persons = await query.collect();
-    const result = await persons.map(person => person.get("x"));
-    res.send(result); */
-    res.send(await typeDB.runBasicQueries());
-
 })
 
 
