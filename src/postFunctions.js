@@ -1,6 +1,11 @@
 const connection = require("./clientConfig.js");
 
-
+/**
+ * Method to add a new thing to the database
+ * @param thingId id of the thing
+ * @param body body of the request with attributes and features
+ * @returns {Promise<Stream<ConceptMap>>}
+ */
 async function addThing(thingId, body) {
     const conn = await connection.openConnection(false, true);
 
@@ -22,6 +27,13 @@ async function addThing(thingId, body) {
     return answer;
 }
 
+/**
+ * Method to add attributes to a new thing
+ * @param attributes attributes to insert
+ * @param body body of the request containing the attributes
+ * @param thingId id of the new thing
+ * @returns {string} query to insert new thing with attributes
+ */
  function addAttributes(attributes, body, thingId) {
     const map = Object.entries(body.attributes);
     let category = "";
@@ -37,6 +49,11 @@ async function addThing(thingId, body) {
     return "insert $x isa " + category + "; $x has thingId '" + thingId + "'" + attributes;
 }
 
+/**
+ * Method to add new feature of a thing
+ * @param body body of the request
+ * @returns {string} query to add a relation
+ */
  function addFeatures(body) {
     const map = Object.entries(body.features);
     let id1, id2, role1, role2, rel, relId;

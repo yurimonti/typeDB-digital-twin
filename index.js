@@ -10,10 +10,16 @@ app.get('/', (req, res) => {
     res.send("Hello World!!");
 })
 
+/**
+ * Get of all the things
+ */
 app.get('/things', async (req, res) => {
     res.send(await typeDB.getThings());
 })
 
+/**
+ * Get of all the relations
+ */
 app.get("/relations", async (req, res) => {
     res.send(await typeDB.getRelations());
 });
@@ -93,6 +99,9 @@ app.delete("/deleteMultipleRelations", async (req, res) => {
     }
 });
 
+/**
+ * Post to add a new thing
+ */
 app.post('/newThing/:thingId', async (req, res) => {
     try {
         const {thingId} = req.params;

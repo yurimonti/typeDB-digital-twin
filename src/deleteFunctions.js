@@ -1,6 +1,10 @@
 const connection = require("./clientConfig.js");
 
-
+/**
+ * Method to delete a specific thing
+ * @param thingId id of the thing to remove
+ * @returns {Promise<void>}
+ */
 async function deleteThing(thingId) {
     const conn = await connection.openConnection(false, true);
     let answer = await conn.transactionRef.query.delete("match $p isa entity, has thingId '" + thingId + "'; delete $p isa entity;");
@@ -8,6 +12,11 @@ async function deleteThing(thingId) {
     return answer;
 }
 
+/**
+ * Delete a specific relation
+ * @param relationId id of the relation to remove
+ * @returns {Promise<void>}
+ */
 async function deleteRelation(relationId) {
     const conn = await connection.openConnection(false, true);
     let answer = await conn.transactionRef.query.delete("match $p isa relation, has relationId '" + relationId + "'; delete $p isa relation;");
@@ -15,13 +24,24 @@ async function deleteRelation(relationId) {
     return answer;
 }
 
+/**
+ * Delete an attribute of a specific thing
+ * @param thingId id of the thing
+ * @param attributeName attribute to remove
+ * @returns {Promise<void>}
+ */
 async function deleteThingAttribute(thingId, attributeName) {
     const conn = await connection.openConnection(false, true);
     let answer = await conn.transactionRef.query.delete("match $p isa entity, has thingId '" + thingId + "'; $a isa " + attributeName + "; $p has $a; delete $a isa attribute;");
     await connection.closeConnection(conn);
     return answer;
-
 }
+
+/**
+ * Delete multiple things together
+ * @param reqQuery query in the request containing the id of the things to remove
+ * @returns {Promise<undefined>}
+ */
 async function deleteMultipleThings(reqQuery) {
     const conn = await connection.openConnection(false, true);
 
@@ -57,6 +77,11 @@ async function deleteMultipleThings(reqQuery) {
     return answer;
 }
 
+/**
+ * Delete all attributes of the specified things
+ * @param reqQuery query in the request with the id of the thing whose attributes are to be removed
+ * @returns {Promise<undefined>}
+ */
 async function deleteMultipleThingsAttributes(reqQuery) {
     const conn = await connection.openConnection(false, true);
     let answer = undefined;
@@ -91,7 +116,11 @@ async function deleteMultipleThingsAttributes(reqQuery) {
     return answer;
 }
 
-
+/**
+ * Delete multiple relations together
+ * @param reqQuery query in the request with the specified id of the relations to remove
+ * @returns {Promise<undefined>}
+ */
 async function deleteMultipleRelations(reqQuery) {
     const conn = await connection.openConnection(false, true);
     let answer = undefined;
