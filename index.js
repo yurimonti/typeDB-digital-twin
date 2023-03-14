@@ -1,8 +1,10 @@
 const express = require("express");
 const typeDB = require("./src/dbconfig");
 const deletes = require("./src/deleteFunctions");
+const posts = require("./src/postFunctions");
 const {TypeDB, SessionType, TransactionType} = require("typedb-client");
 const app = express();
+app.use(express.json());
 const port = 3030;
 
 app.get('/', (req, res) => {
@@ -91,6 +93,16 @@ app.delete("/deleteMultipleRelations", async (req, res) => {
         res.status(400).send({Error: e});
     }
 });
+
+app.post('/newThing/:thingId', async (req, res) => {
+    try {
+        const {thingId} = req.params;
+        await posts.addThing(thingId, req.body);
+        res.send({Success: 'Successful insertion.'});
+    } catch (e) {
+        res.status(400).send({Error: e});
+    }
+})
 
 
 app.get("/allPersons", async (req, res) => {
