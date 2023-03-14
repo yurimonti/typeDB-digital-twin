@@ -171,8 +171,51 @@ async function createJsonAllRelation(transaction, relation) {
     }
 }
 
+function getAttributesFromAConceptGroup(aConceptGroup) {
+    let attributes = {};
+    aConceptGroup.forEach(c => {
+        const label = attributes[c.attribute.label];
+        if (label === undefined) attributes = {
+            ...attributes,
+            [c.attribute.label]: c.attribute.value
+        }
+    });
+    return attributes;
+}
+
+function getRelationsFromAConceptGroup(aConceptGroup) {
+    let features = {};
+    aConceptGroup.forEach(c => {
+        if (features[c.relation.label] === undefined) features = {
+            ...features,
+            [c.relation.label]: {
+                [c.relation.id]: {
+                    [c.roles.from]: c.thing.iid,
+                    [c.roles.to]: c.related
+                }
+            }
+        }
+        else {
+            const label = features[c.relation.label];
+            if (label[c.relation.id] === undefined) {
+                features[c.relation.label] = {
+                    ...label,
+                    [c.relation.id]: {
+                        [c.roles.from]: c.thing.iid,
+                        [c.roles.to]: c.related
+                    }
+                };
+                //console.log(features);
+            }
+        }
+    });
+    return features;
+}
+
 module.exports = {
     createJsonAllThing,
     createJsonAllRelation,
-    newAttribute
+    newAttribute,
+    getAttributesFromAConceptGroup,
+    getRelationsFromAConceptGroup,
 };
