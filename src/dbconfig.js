@@ -14,10 +14,9 @@ const EmptyThing = {
     features: {}
 }
 //TODO: riempire array di features per ogni ciclo, poi aggiungerlo a result in separata sede.
-const getConceptRelation = async (conceptMap) => {
+const getAllConcepts = async (conceptMap) => {
     let result = [];
     for await (const concept of conceptMap) {
-        //console.log(concept);
         const owner = concept.get('x');
         const attribute = concept.get('a');
         const rel = concept.get('rel');
@@ -25,8 +24,6 @@ const getConceptRelation = async (conceptMap) => {
         const role1 = concept.get('role1');
         const role2 = concept.get('role2');
         const relatedToId = concept.get('t');
-        // const requestedThing = concept.get('x');
-        // const attributeThing = concept.get('a');
         result.push({
             thing: owner,
             attribute: { label: attribute.type.label.name, value: attribute.value },
@@ -34,33 +31,7 @@ const getConceptRelation = async (conceptMap) => {
             roles: { from: role1.label.name, to: role2.label.name },
             related: relatedToId.value
         });
-        //TODO: cancellato un attimo
-        /* result.push({
-            feature: {
-                [rel.type.label.name]: {
-                    
-                    [relAttribute.value]: {
-                        [role1.label.name]: {
-                            [relatedTo.type.label.name]: thingId
-                        }, [role2.label.name]: {
-                            [relatedTo.type.label.name]: relatedTo.value
-                        }
-                    }
-                }
-            }
-        }); */
-        //TODO: cancellato un attimo
-        /* result.push({...result,feature:{[relAttribute.type.label.name]:relAttribute.value,[rel.type.label.name]:{
-            [role1.label.name]:{
-                [relatedTo.type.label.name]:relatedTo.value
-            },[role2.label.name]:{
-                [relatedTo.type.label.name]:thingId
-            }
-        }}}); */
-        //result = {...result,[rel.type.label.name]:{[role.label.name]:{[relatedTo.type.label.name]:relatedTo.value}}};
-        //result = { ...result, [concepts.iid]: concepts.type.label.name };
     }
-    //console.log(result);
     return result;
 }
 
@@ -95,7 +66,6 @@ async function metodoProva(thingId) {
     // *il problema è trasformare il tutto in json in modo corretto.
     // *features e attributes non devono essere array di oggetti ma un oggetto unico (VEDERE DITTO), poichè..
     // *è più facile da trasformare e da modificare attributi secondo la query data dalla request.
-
     const query = [
         "match",
         " $x isa entity, has thingId '" + thingId + "', has attribute $a;",
@@ -110,32 +80,29 @@ async function metodoProva(thingId) {
     const queryResult = readTransaction.query.matchGroup(query.join(""));
     // *Array of conceptMapGroup --> vedere documentazione (si capisce poco)
     const collector = await queryResult.collect();
-    //console.log(collector);
     // *there is only an element because we get a specific thing
     const thisThingMap = collector[0];
     // for each conceptMapGroup in Array
     //for await (const element of collector) {
-        // *Array of ConceptMap --> vedere documentazione (si capisce poco)
-        let conceptMap = thisThingMap.conceptMaps;
-        //let owner = thisThingMap.owner;
-        //console.log(owner);
-        //console.log(conceptMap.map(c => c.concepts()));
-        // conceptMap.forEach( concept => console.log('map',concept));
-        // console.log(element);
-        // Prova per le relazioni
-        const relations = await getConceptRelation(conceptMap);
-        //console.log(relations);
-        // Prova per attributi --> questo funziona per certo
-        //await getConceptAttribute(conceptMap, attributes);
-        // const roles = await getConceptRole(conceptMap);
-        /*results = { attributes: attributes, features: relations, roles: roles };*/
-        const attributes = getAttributesFromAConceptGroup(relations);
-        const features = getRelationsFromAConceptGroup(relations);
+    // *Array of ConceptMap --> vedere documentazione (si capisce poco)
+    let conceptMap = thisThingMap.conceptMaps;
+    //let owner = thisThingMap.owner;
+    // Prova per le relazioni
+    const concepts = await getAllConcepts(conceptMap);
+    const attributes = getAttributesFromAConceptGroup(concepts);
+    const features = getRelationsFromAConceptGroup(concepts,attributes.thingId);
+    const thing = {
+        thingId:attributes.thingId,
+        attributes:{},
+        features:features
+    };
+    delete attributes.thingId;
+    thing.attributes = attributes;
     //}
     await readTransaction.close();
     await session.close();
     await client.close();
-    return {attributes:attributes,features:features};
+    return thing;
 }
 
 /* const getCompleteThing = async (thingId) => {

@@ -183,14 +183,14 @@ function getAttributesFromAConceptGroup(aConceptGroup) {
     return attributes;
 }
 
-function getRelationsFromAConceptGroup(aConceptGroup) {
+function getRelationsFromAConceptGroup(aConceptGroup,thingId) {
     let features = {};
     aConceptGroup.forEach(c => {
         if (features[c.relation.label] === undefined) features = {
             ...features,
             [c.relation.label]: {
                 [c.relation.id]: {
-                    [c.roles.from]: c.thing.iid,
+                    [c.roles.from]: thingId,
                     [c.roles.to]: c.related
                 }
             }
@@ -201,7 +201,7 @@ function getRelationsFromAConceptGroup(aConceptGroup) {
                 features[c.relation.label] = {
                     ...label,
                     [c.relation.id]: {
-                        [c.roles.from]: c.thing.iid,
+                        [c.roles.from]: thingId,
                         [c.roles.to]: c.related
                     }
                 };
