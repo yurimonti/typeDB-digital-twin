@@ -18,7 +18,7 @@ app.get('/things', async (req, res) => {
     res.send(await typeDB.getThings());
 })
 
-app.put('/things/:thingId',async (req,res)=>{
+app.post('/things/:thingId',async (req,res)=>{
     const id = req.params.thingId;
     const body = req.body;
     await typeDB.createNewThing(id,body.attributes,body.features)
