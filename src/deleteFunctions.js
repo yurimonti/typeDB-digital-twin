@@ -89,7 +89,7 @@ async function deleteMultipleThings(reqQuery) {
 }
 
 /**
- * Delete all attributes of the specified things.
+ * Delete all attributes of the specified things, except for the thingId
  *
  * @param reqQuery query in the request with the id of the thing whose attributes are to be removed
  * @returns {Promise<undefined>} a {@link Promise} representing the deletion of all the attributes of the specified things
@@ -110,14 +110,14 @@ async function deleteMultipleThingsAttributes(reqQuery) {
                 if (key === 'thingId') {
                     for (let i = 0; i < value.length; i++) {
                         let attr = value[i];
-                        answer = await conn.transactionRef.query.delete("match $p isa entity, has " + key + "'" + attr + "', has attribute $a; delete $a isa attribute;");
+                        answer = await conn.transactionRef.query.delete("match $p isa entity, has " + key + "'" + attr + "', has attribute $a; not {$a isa thingId;}; delete $a isa attribute;");
                     }
                 } else {
                     throw 'Bad request, one or more parameters not valid.';
                 }
             } else {
                 if (key === 'thingId') {
-                    answer = await conn.transactionRef.query.delete("match $p isa entity, has " + key + "'" + value + "', has attribute $a; delete $a isa attribute;");
+                    answer = await conn.transactionRef.query.delete("match $p isa entity, has " + key + "'" + value + "', has attribute $a; not {$a isa thingId;}; delete $a isa attribute;");
                 } else {
                     throw 'Bad request, one or more parameters not valid.';
                 }
