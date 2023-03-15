@@ -21,11 +21,15 @@
 
  */
 require("express");
+
+
+
 /**
- * Crea json con tutti gli attributi e le feature delle things
- * @param {*} transaction TypeDBTransaction per asRemote
- * @param {*} thing Entity da parsare
- * @returns json object
+ * Creates a json object with all the attributes and the features of a particular thing.
+ *
+ * @param {*} transaction typedb transaction for asRemote method
+ * @param {*} thing thing to be parsed
+ * @returns a {@link Promise} that represents a json object
  */
 async function createJsonAllThing(transaction, thing) {
     try {
@@ -57,7 +61,14 @@ async function createJsonAllThing(transaction, thing) {
     }
 }
 
-
+/**
+ * Extracts and creates an array with attributes and roles.
+ *
+ * @param relation relation that owns attributes and roles
+ * @param transaction typedb transaction for asRemote method
+ * @returns {Promise<{playersByRoleType: Map<RoleType, Thing[]>, players: *[], attributes: {}[]}>} a {@link Promise}
+ * that represents an object with attributes and roles
+ */
 async function extractAttributesAndRoles(relation, transaction) {
     const attributesCollection = await relation
         .asRemote(transaction)
@@ -77,10 +88,11 @@ async function extractAttributesAndRoles(relation, transaction) {
 }
 
 /**
- * Crea relazioni con solo l'id della thing
- * @param transaction
- * @param relation
- * @returns {Promise<{}>}
+ * Creates a json object with relations starting from an id of a particular thing.
+ *
+ * @param transaction typedb transaction
+ * @param relation relation to be parsed
+ * @returns {Promise<{}>} a {@link Promise} that represents a json object
  */
 async function createJsonOnlyIDRelation(transaction, relation) {
     try {
@@ -109,10 +121,11 @@ async function createJsonOnlyIDRelation(transaction, relation) {
 }
 
 /**
- * Crea json della thing con solo l'id
- * @param transaction
- * @param entity
- * @returns {Promise<{}>}
+ * Creates a json object of a thing with only its id.
+ *
+ * @param transaction typedb transaction
+ * @param entity thing to be parsed
+ * @returns {Promise<{}>} a {@link Promise} that represents a json object
  */
 async function createJsonOnlyIDThing(transaction, entity) {
     try {
@@ -136,10 +149,11 @@ async function createJsonOnlyIDThing(transaction, entity) {
 }
 
 /**
- * Crea un json della thing con solo gli attributi
- * @param transaction
- * @param thing
- * @returns {Promise<{}>}
+ * Creates a json object of a thing starting with only its attributes.
+ *
+ * @param transaction typedb transaction
+ * @param thing thing to be parsed
+ * @returns {Promise<{}>} a {@link Promise} that represents a json object
  */
 async function createJsonFromThingAttributesOnly(transaction, thing) {
     try {
@@ -159,10 +173,11 @@ async function createJsonFromThingAttributesOnly(transaction, thing) {
 }
 
 /**
- * Crea un json delle relazioni
- * @param {*} transaction TypeDBTransaction per asRemote
- * @param {*} relation Entity da parsare
- * @returns json object
+ * Creates a json object representing s set of relations.
+ *
+ * @param {*} transaction typedb transaction for asRemote method
+ * @param {*} relation entity to be parsed
+ * @returns {Promise<{}>} a {@link Promise} that represents a json object
  */
 async function createJsonAllRelation(transaction, relation) {
     try {
