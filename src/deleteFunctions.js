@@ -9,10 +9,7 @@ const connection = require("./clientConfig.js");
  * @returns {Promise<void>}  a {@link Promise} representing the deletion of a thing
  */
 async function deleteThing(thingId) {
-    const conn = await connection.openConnection(false, true);
-    let answer = await conn.transactionRef.query.delete("match $p isa entity, has thingId '" + thingId + "'; delete $p isa entity;");
-    await connection.closeConnection(conn);
-    return answer;
+    return await deleteSingleData("match $p isa entity, has thingId '" + thingId + "'; delete $p isa entity;");
 }
 
 /**
@@ -22,10 +19,7 @@ async function deleteThing(thingId) {
  * @returns {Promise<void>} a {@link Promise} representing the deletion of a relation
  */
 async function deleteRelation(relationId) {
-    const conn = await connection.openConnection(false, true);
-    let answer = await conn.transactionRef.query.delete("match $p isa relation, has relationId '" + relationId + "'; delete $p isa relation;");
-    await connection.closeConnection(conn);
-    return answer;
+    return await deleteSingleData("match $p isa relation, has relationId '" + relationId + "'; delete $p isa relation;");
 }
 
 /**
@@ -36,11 +30,22 @@ async function deleteRelation(relationId) {
  * @returns {Promise<void>} a {@link Promise} representing the deletion of an attribute of a specific thing
  */
 async function deleteThingAttribute(thingId, attributeName) {
+    return await deleteSingleData("match $p isa entity, has thingId '" + thingId + "'; $a isa " + attributeName + "; $p has $a; delete $a isa attribute;")
+}
+
+/**
+ * Deletes a single data (that can be thing, an attribute or a relation).
+ *
+ * @param query query to be performed
+ * @returns {Promise<*>} a {@link Promise} that represents the completion of the deletion query
+ */
+async function deleteSingleData(query) {
     const conn = await connection.openConnection(false, true);
-    let answer = await conn.transactionRef.query.delete("match $p isa entity, has thingId '" + thingId + "'; $a isa " + attributeName + "; $p has $a; delete $a isa attribute;");
+    let answer = await conn.transactionRef.query.delete(query);
     await connection.closeConnection(conn);
     return answer;
 }
+
 
 /**
  * Delete multiple things one after another.
