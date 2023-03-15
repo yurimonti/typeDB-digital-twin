@@ -14,43 +14,63 @@ const EmptyThing = {
     features: {}
 }
 
-const isADate = (value)=>{
-    if(value.length === 24 && value.charAt(10) ==='T' && value.charAt(23) === 'Z') return true;
+const isADate = (value) => {
+    if (value.length === 24 && value.charAt(10) === 'T' && value.charAt(23) === 'Z') return true;
     else return false;
 }
 
-const getAttributeQuery = (attributes)=>{
+//* get string of attributes of a thing
+const getAttributeQuery = (attributes) => {
     let result = "";
     let aKeys = Object.entries(attributes);
     aKeys.forEach(entry => {
         let value = entry[1];
-        if(isADate(value)) result = result.concat(", has " + entry[0] + " " + value.slice(0,value.length-1));
+        if (isADate(value)) result = result.concat(", has " + entry[0] + " " + value.slice(0, value.length - 1));
         else typeof value !== 'string' ? result = result.concat(", has " + entry[0] + " " + value) : result = result.concat(", has " + entry[0] + " '" + value + "'");
     });
     result = result.concat(";");
     return result;
 }
 
-const getRelationsQuery = (features)=>{
-    let result = "";
+//* get values regarded on each relations in a request body;
+const getRelationsQuery = (features) => {
+    //let result = "";
+    let arrayRel = [];
     let relationKeys = Object.entries(features);
     relationKeys.forEach(innerRelation => {
-        let relResult = "(";
         const relation = innerRelation[0];
-        relResult = relResult.concat("(");
         const idKeys = Object.entries(innerRelation[1]);
-        console.log(idKeys);
         idKeys.forEach(innerId => {
             const relId = innerId[0];
             const innerRole = Object.entries(innerId[1]);
-            console.log(innerRole);
-            innerRole.forEach(role => {
-                relResult = relResult.concat(role[0]+":"+role[1])
-            })
+            arrayRel.push({
+                rel: relation, relId: relId, role1: innerRole[0][0], role2: innerRole[1][0], id1: innerRole[0][1], id2: innerRole[1][1]
+            });
+            /* innerRole.forEach(role => {
+                relResult = relResult.concat(role[0] + ":" + role[1])
+
+            }) */
         })
     })
-    result = result.concat('');
-    return null;
+    /* console.log(arrayRel);
+    arrayRel.forEach( obj => {
+        "match $"+obj.id2+" isa entity, has thingId '"+obj.id2+"'; "
+    })
+    result = result.concat(''); */
+    return arrayRel;
+}
+//*create the match part and relations insert part of the query
+const createQueryToPut = (features) => {
+    let matchRelated = ["match"];
+    let insertRelations = [];
+    const rels = getRelationsQuery(features);
+    rels.forEach(obj => {
+        let toPushBefore = " $" + obj.id2 + " isa entity, has thingId '" + obj.id2 + "';";
+        !matchRelated.includes(toPushBefore) &&
+            matchRelated.push(" $" + obj.id2 + " isa entity, has thingId '" + obj.id2 + "';");
+        insertRelations.push(" $" + obj.relId + "(" + obj.role1 + ":$" + obj.id1 + "," + obj.role2 + ":$" + obj.id2 + ") isa " + obj.rel + "; $" + obj.relId + " has relationId '" + obj.relId + "';");
+    });
+    return { pre: matchRelated, post: insertRelations };
 }
 
 async function createNewThing(thingId, attributes, features) {
@@ -58,21 +78,22 @@ async function createNewThing(thingId, attributes, features) {
     const session = await client.session(database, SessionType.DATA);
     const writeTransaction = await session.transaction(TransactionType.WRITE);
     let attributeQuery = getAttributeQuery(attributes);
-    let relationQuery = getRelationsQuery(features);
+    let category = 'place';
+    if (attributes.category !== undefined) category = attributes.category;
+    const { pre, post } = createQueryToPut(features);
+    //* creating query...
     const query = [
+        pre.join(""),
         "insert",
-        " $x isa entity, has thingId '" + thingId + "'"+attributeQuery,
-        " $role1 sub! relation:role;",
-        " $role2 sub! relation:role;",
-        " $rel($role1:$x,$role2:$y) isa relation, has attribute $relAtt;",
-        " get $a,$x,$rel,$t,$role1,$role2,$relAtt;",
-        " group $x;"
+        " $" + thingId + " isa " + category + ", has thingId '" + thingId + "'" + attributeQuery,
+        post.join("")
     ];
     const realQuery = query.join("");
+    console.log(realQuery);
+    await writeTransaction.query.insert(realQuery);
     await writeTransaction.commit();
     await session.close();
     await client.close();
-    return realQuery;
 }
 
 //TODO: riempire array di features per ogni ciclo, poi aggiungerlo a result in separata sede.

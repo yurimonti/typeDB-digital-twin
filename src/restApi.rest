@@ -4,42 +4,29 @@ GET http://localhost:3030/things HTTP/1.1
 ###
 
 
-GET http://localhost:3030/things/pir_1 HTTP/1.1
+GET http://localhost:3030/things/matelica HTTP/1.1
 
 
 ###
 
-PUT http://localhost:3030/things/camerino HTTP/1.1
+PUT http://localhost:3030/things/matelica HTTP/1.1
 content-type: application/json
 
 {
-  "thingId": "pir_1",
+  "thingId": "matelica",
   "attributes": {
-    "fw_version": "1.0b",
-    "hw_version": "1.00.00",
-    "label": "PIR 1",
-    "date": "2019-05-15T15:00:00.000Z",
-    "tipology": "pir"
+    "label": "Matelica",
+    "tipology": "city"
   },
   "features": {
-    "sensor_location": {
-      "sens_location_pir1": {
-        "located": "pir_1",
-        "locator": "lb1"
+    "location": {
+      "department_location": {
+        "locator": "matelica",
+        "located": "polo_ludovici_b"
       },
-	  "sens_location_pir12": {
-        "located": "pir_2",
-        "locator": "lb2"
-      }
-    },
-	"location": {
-      "sens_location_pir1": {
-        "located": "pir_1",
-        "locator": "lb1"
-      },
-	  "sens_location_pir12": {
-        "located": "pir_2",
-        "locator": "lb2"
+      "department_location2": {
+        "locator": "matelica",
+        "located": "polo_ludovici_a"
       }
     }
   }
