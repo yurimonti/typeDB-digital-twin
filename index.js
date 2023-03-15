@@ -33,7 +33,7 @@ app.delete('/deleteThing/:thingId', async (req, res) => {
         await deletes.deleteThing(thingId);
         res.send({Success: 'Successful deletion.'});
     } catch (e) {
-        res.status(400).send({Error: e});
+        res.status(400).send({Error: e.message});
     }
 })
 
@@ -46,7 +46,7 @@ app.delete('/deleteRelation/:relationId', async (req, res) => {
         await deletes.deleteRelation(relationId);
         res.send({Success: 'Successful deletion.'});
     } catch (e) {
-        res.status(400).send({Error: e});
+        res.status(400).send({Error: e.message});
     }
 })
 
@@ -58,7 +58,7 @@ app.delete('/deleteThingAttribute/:thingId/attribute/:attributeName', async (req
         await deletes.deleteThingAttribute(req.params.thingId, req.params.attributeName);
         res.send({Success: 'Successful deletion.'});
     } catch (e) {
-        res.status(400).send({Error: e});
+        res.status(400).send({Error: e.message});
     }
 })
 
@@ -70,7 +70,7 @@ app.delete("/deleteMultipleThings", async (req, res) => {
         await deletes.deleteMultipleThings(req.query);
         res.send({Success: 'Successful deletion.'});
     } catch (e) {
-        res.status(400).send({Error: e});
+        res.status(400).send({Error: e.message});
     }
 });
 
@@ -83,7 +83,7 @@ app.delete("/deleteMultipleThingsAttributes", async (req, res) => {
         await deletes.deleteMultipleThingsAttributes(req.query);
         res.send({Success: 'Successful deletion.'});
     } catch (e) {
-        res.status(400).send({Error: e});
+        res.status(400).send({Error: e.message});
     }
 });
 
@@ -95,7 +95,7 @@ app.delete("/deleteMultipleRelations", async (req, res) => {
         await deletes.deleteMultipleRelations(req.query);
         res.send({Success: 'Successful deletion.'});
     } catch (e) {
-        res.status(400).send({Error: e});
+        res.status(400).send({Error: e.message});
     }
 });
 
@@ -108,7 +108,7 @@ app.post('/newThing/:thingId', async (req, res) => {
         await posts.addThing(thingId, req.body);
         res.send({Success: 'Successful insertion.'});
     } catch (e) {
-        res.status(400).send({Error: e});
+        res.status(400).send({Error: e.message});
     }
 })
 
