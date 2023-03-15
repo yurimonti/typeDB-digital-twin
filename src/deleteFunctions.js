@@ -30,7 +30,10 @@ async function deleteRelation(relationId) {
  * @returns {Promise<void>} a {@link Promise} representing the deletion of an attribute of a specific thing
  */
 async function deleteThingAttribute(thingId, attributeName) {
-    return await deleteSingleData("match $p isa entity, has thingId '" + thingId + "'; $a isa " + attributeName + "; $p has $a; delete $a isa attribute;")
+    if(attributeName === 'thingId') {
+        throw new Error("Wrong attribute name. Can't delete thingId.");
+    }
+    return await deleteSingleData("match $p isa entity, has thingId '" + thingId + "'; $a isa " + attributeName + "; $p has $a; delete $a isa attribute;");
 }
 
 /**
@@ -89,7 +92,7 @@ async function deleteMultipleThings(reqQuery) {
 }
 
 /**
- * Delete all attributes of the specified things, except for the thingId
+ * Delete all attributes of the specified things, except for the thingId.
  *
  * @param reqQuery query in the request with the id of the thing whose attributes are to be removed
  * @returns {Promise<undefined>} a {@link Promise} representing the deletion of all the attributes of the specified things
