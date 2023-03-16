@@ -1,5 +1,5 @@
 const connection = require("./clientConfig.js");
-
+const {TypeDBOptions} = require("typedb-client");
 
 
 /**
@@ -22,7 +22,9 @@ async function addThing(thingId, body) {
 
     let answer = await conn.transactionRef.query.insert(query);
     if (body.features !== undefined) {
-        query = addFeatures(body);
+        query = addFeatures(body, thingId);
+        console.log(query);
+
         answer = await conn.transactionRef.query.insert(query);
     }
 
@@ -38,7 +40,7 @@ async function addThing(thingId, body) {
  * @param thingId id of the new thing
  * @returns {string} the query to insert a new thing with attributes
  */
- function addAttributes(attributes, body, thingId) {
+function addAttributes(attributes, body, thingId) {
     let category = "";
     const map = Object.entries(body.attributes);
 
@@ -58,11 +60,15 @@ async function addThing(thingId, body) {
  * Method to add new feature of a thing.
  *
  * @param body body of the request
+ * @param id1 id of the thing 
  * @returns {string} query to add a relation
  */
- function addFeatures(body) {
-    let id1, id2, role1, role2, rel, relId;
+function addFeatures(body, id1) {
+    let id2, role1, role2, rel, relId;
     const map = Object.entries(body.features);
+    let match = "match " +
+        " $x isa entity, has thingId '" + id1 + "';" ;
+    let insert = "insert ";
 
     map.forEach(feature => {
         rel = feature[0];
@@ -74,12 +80,11 @@ async function addThing(thingId, body) {
             let second = Object.entries(relation[1])[1];
             role2 = second[0];
             id2 = second[1];
+            match += " $" + id2 + " isa entity, has thingId '" + id2 + "';"
+            insert += "$" + relId + " (" + role1 + ": $x, " + role2 + ": $" + id2 + ") isa " + rel + "; $" + relId + " has relationId '" + relId + "';"
         })
     });
-    return "match\n" +
-        " $x isa entity, has thingId '" + id1 + "';" +
-        " $y isa entity, has thingId '" + id2 + "';" +
-        "insert $new-relation (" + role1 + ": $x, " + role2 + ": $y) isa " + rel + "; $new-relation has relationId '" + relId + "';";
+    return match += insert;
 }
 
 

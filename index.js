@@ -108,7 +108,7 @@ app.post('/newThing/:thingId', async (req, res) => {
         await posts.addThing(thingId, req.body);
         res.send({Success: 'Successful insertion.'});
     } catch (e) {
-        res.status(400).send({Error: e.message});
+        res.status(400).send({Error: e});
     }
 })
 

@@ -1,7 +1,7 @@
 const { TypeDB, SessionType,TransactionType } = require("typedb-client");
 
 const configurator = {
-    serverIP: "192.168.40.128:1729", //inserire IP server
+    serverIP: "localhost:1729", //inserire IP server
     dbName: "API_ASSET#TYPEDB"       //inserire nome database
 }
 
