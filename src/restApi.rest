@@ -4,30 +4,38 @@ GET http://localhost:3030/things HTTP/1.1
 ###
 
 
-GET http://localhost:3030/things/matelica HTTP/1.1
+GET http://localhost:3030/things/power2 HTTP/1.1
 
 
 ###
 
-POST http://localhost:3030/things/matelica HTTP/1.1
+POST http://localhost:3030/things/power2 HTTP/1.1
 content-type: application/json
 
 {
-  "thingId": "matelica",
-  "attributes": {
-    "label": "Matelica",
-    "tipology": "city"
-  },
-  "features": {
-    "location": {
-      "department_location": {
-        "locator": "matelica",
-        "located": "polo_ludovici_b"
+    "thingId": "power2",
+    "attributes": {
+      "capacity": "20kw",
+      "category":"equipment",
+      "label": "Energy Cabin",
+      "tipology": "energy_cabin"
+    },
+    "features": {
+      "equipmentRel": {
+        "equipment_net9": {
+          "equipping": "power2",
+          "equipped": "polo_ludovici_a"
+        },
+        "equipment_net9-1": {
+          "equipping": "power2",
+          "equipped": "polo_ludovici_b"
+        }
       },
-      "department_location2": {
-        "locator": "matelica",
-        "located": "polo_ludovici_a"
+      "power": {
+        "power-2": {
+          "powering": "power2",
+          "powered": "gw1"
+        }
       }
     }
   }
-}

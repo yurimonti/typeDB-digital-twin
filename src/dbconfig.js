@@ -78,7 +78,7 @@ async function createNewThing(thingId, attributes, features) {
     const session = await client.session(database, SessionType.DATA);
     const writeTransaction = await session.transaction(TransactionType.WRITE);
     let attributeQuery = getAttributeQuery(attributes);
-    let category = 'place';
+    let category = 'digital-twin';
     if (attributes.category !== undefined) category = attributes.category;
     const { pre, post } = createQueryToPut(features);
     //* creating query...
@@ -89,7 +89,6 @@ async function createNewThing(thingId, attributes, features) {
         post.join("")
     ];
     const realQuery = query.join("");
-    console.log(realQuery);
     await writeTransaction.query.insert(realQuery);
     await writeTransaction.commit();
     await session.close();
@@ -144,7 +143,6 @@ async function getAThing(thingId) {
     const collector = await queryResult.collect();
     // *there is only an element because we got a specific thing
     const thisThingMap = collector[0];
-    console.log(thisThingMap.owner);
     // for each conceptMapGroup in Array
     //for await (const element of collector) {
     // *Array of ConceptMap --> vedere documentazione (si capisce poco)
