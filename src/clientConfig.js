@@ -108,16 +108,4 @@ const closeTransaction = async (transaction) => {
 }
 
 
-/**
- *
- * @param transaction
- * @param query
- * @returns {*}
- */
-const matchQuery = (transaction,query) => {
-    return transaction.query.match(query);
-}
-
-
-module.exports = {openConnection, closeConnection, matchQuery}
-//module.exports = {closeClient,closeSession,closeTransaction,openClient,openSession,openTransaction,matchQuery}
+module.exports = {openConnection, closeConnection}
