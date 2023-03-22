@@ -1,11 +1,24 @@
-GET http://localhost:3030/things HTTP/1.1
-
+GET http://localhost:3030/ HTTP/1.1
 
 ###
 
+GET http://localhost:3030/things HTTP/1.1
 
-GET http://localhost:3030/things/power2 HTTP/1.1
+###
 
+GET http://localhost:3030/things/camerino HTTP/1.1
+
+###
+
+GET http://localhost:3030/things/camerino/definition HTTP/1.1
+
+###
+
+GET http://localhost:3030/things/camerino/attributes HTTP/1.1
+
+###
+
+GET http://localhost:3030/things/camerino/features HTTP/1.1
 
 ###
 
@@ -39,3 +52,15 @@ content-type: application/json
       }
     }
   }
+
+###
+
+PATCH http://localhost:3030/things/camerino/attributes HTTP/1.1
+content-type: application/json
+
+{
+  "attributes": {
+    "label": "Camerino",
+    "tipology":"city"
+    }
+}

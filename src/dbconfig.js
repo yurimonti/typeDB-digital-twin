@@ -7,11 +7,82 @@ const {
     getRelationsFromAConceptGroup,
 } = require("./jsonEntityConstructor.js");
 
+const clientFunction = require('./clientFunction.js');
+
 const database = "prova"; //inserire nome database
 const EmptyThing = {
     thingId: '',
     attributes: {},
     features: {}
+}
+
+/**
+ * 
+ * @returns {string[]} all thingIds that are present
+ */
+const getAllThingId = async () => {
+    const client = clientFunction.openClient();
+    const session = await clientFunction.openSession(client);
+    const readTransaction = await clientFunction.openTransaction(session);
+    const streamResult = await clientFunction.matchQuery(readTransaction, "match $x isa thingId;get $x;");
+    const collection = await streamResult.collect();
+    return collection.map(c => c.get('x').asAttribute().value);
+}
+
+/**
+ * checks if a thingId there is already present or not
+ * @param {string} thingId 
+ * @returns {boolean} if id is present or not
+ */
+const thingIdIsPresent = async (thingId) => {
+    const thingIds = await getAllThingId();
+    return thingIds.includes(thingId);
+}
+
+//todo: da vedere
+const updateAttributesString = (thingId, attributes, features) => {
+    let toMatch = ["match $" + thingId + " isa entity, has thingId '" + thingId + "'"];
+    let toDelete = ["delete"];
+    let toInsert = ["insert"];
+    Object.entries(attributes).forEach(entry => {
+        let key = entry[0];
+        let value = entry[1];
+        toMatch.push(", has " + key + " $" + key);
+        toDelete.push(" $" + thingId + " has $" + key + ";");
+        if (isADate(value)) toInsert.push(" $" + thingId + " has " + key + " " + value.slice(0, value.length - 1) +";");
+        else typeof value !== 'string' ? toInsert.push(" $" + thingId + " has " + key + " " + value +";") : toInsert.push(" $" + thingId + " has " + key + " '" + value + "'" + ";");
+    })
+    toMatch.push(' ;');
+    if (features) {
+        const relations = getRelationsQuery(features);
+        relations.forEach(obj => {
+            let toPushBefore = " $" + obj.id2 + " isa entity, has thingId '" + obj.id2 + "';";
+            !toMatch.includes(toPushBefore) &&
+                toMatch.push(toPushBefore);
+            toMatch.push(" $" + obj.relId + "(" + obj.role1 + ":$" + obj.id1 + "," + obj.role2 + ":$" + obj.id2 + ") isa " + obj.rel + "; $" + obj.relId + " has relationId '" + obj.relId + "';");
+        });
+    }
+    return { toMatch: toMatch, toDelete: toDelete, toInsert: toInsert };
+}
+//todo: da implementare
+const updateAttributesOfAThing = async (thingId, attributes) => {
+    const { toMatch, toDelete, toInsert } = updateAttributesString(thingId, attributes);
+    const query = toMatch.join("")+toDelete.join("")+toInsert.join("");
+    console.log(query);
+    const client = TypeDB.coreClient("localhost:1729");
+    const session = await client.session(database, SessionType.DATA);
+    const writeTransaction = await session.transaction(TransactionType.WRITE);
+    console.log(writeTransaction.type === TransactionType.WRITE);
+    try {
+        writeTransaction.query.update(query);
+    } catch (error) {
+        await writeTransaction.rollback();
+        console.log(error);
+    } finally {
+        await writeTransaction.commit();
+        await clientFunction.closeSession(session);
+        await clientFunction.closeClient(client);
+    }
 }
 
 const isADate = (value) => {
@@ -117,7 +188,7 @@ const getAllConcepts = async (conceptMap) => {
     return result;
 }
 
-//TODO: GUARDARE SOLO QUESTO METODO.
+//!FIXME:  GUARDARE SOLO QUESTO METODO --> spostato in getFunctions
 async function getAThing(thingId) {
     const client = TypeDB.coreClient("localhost:1729");
     const session = await client.session(database, SessionType.DATA);
@@ -166,7 +237,7 @@ async function getAThing(thingId) {
     return thing;
 };
 
-const getThings = async () => {
+const getThings = async (withDefinition) => {
     const client = TypeDB.coreClient("localhost:1729");
     const session = await client.session(database, SessionType.DATA);
     const readTransaction = await session.transaction(TransactionType.READ);
@@ -200,13 +271,30 @@ const getThings = async () => {
         const concepts = await getAllConcepts(conceptMap);
         const attributes = getAttributesFromAConceptGroup(concepts);
         const features = getRelationsFromAConceptGroup(concepts, attributes.thingId);
-        const thing = {
+        const thing = {};
+        if (withDefinition) {
+            thing = {
+                thingId: attributes.thingId,
+                definition: { category: attributes.category, typology: attributes.tipology },
+                attributes: {},
+                features: features
+            };
+            delete attributes.category;
+            delete attributes.tipology;
+        } else thing = {
             thingId: attributes.thingId,
             attributes: {},
             features: features
         };
         delete attributes.thingId;
         thing.attributes = attributes;
+        /* const thing = {
+            thingId: attributes.thingId,
+            attributes: {},
+            features: features
+        };
+        delete attributes.thingId;
+        thing.attributes = attributes; */
         things.push(thing);
     }
     await readTransaction.close();
@@ -332,4 +420,7 @@ module.exports = {
     getRelations,
     getAThing,
     createNewThing,
+    //TODO: prova
+    getAllThingId,
+    updateAttributesOfAThing,
 };

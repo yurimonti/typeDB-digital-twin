@@ -1,6 +1,6 @@
 const { TypeDB, SessionType,TransactionType } = require("typedb-client");
 
-const databaseName = "API_ASSET#TYPEDB"; //inserire nome database
+const databaseName = "prova"; //inserire nome database
 const clientIP = "localhost:1729";   //inserire IP client
 
 const openClient = ()=>{

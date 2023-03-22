@@ -2,6 +2,7 @@ const express = require("express");
 const typeDB = require("./src/dbconfig");
 const { TypeDB, SessionType, TransactionType } = require("typedb-client");
 const deletes = require("./src/deleteFunctions");
+const {getThings,getAThing, getRelationsOfAThing,getAttributesOfAThing,getDefinitionOfAThing} = require('./src/getFunctions.js');
 const app = express();
 const port = 3030;
 app.use(express.json());
@@ -14,11 +15,16 @@ app.get('/', async (req, res) => {
     res.send("Hello World!!");
 })
 
-app.get('/things', async (req, res) => {
-    res.send(await typeDB.getThings());
+app.patch('/things/:thingId/attributes',async (req,res)=>{
+    await typeDB.updateAttributesOfAThing(req.params.thingId,req.body.attributes);
+    res.sendStatus(200);
 })
 
-app.post('/things/:thingId',async (req,res)=>{
+app.get('/things', async (req, res) => {
+    res.send(await getThings());
+})
+
+app.post('/things/:thingId',async(req,res)=>{
     const id = req.params.thingId;
     const body = req.body;
     await typeDB.createNewThing(id,body.attributes,body.features)
@@ -37,12 +43,27 @@ app.post('/things/:thingId',async (req,res)=>{
 
 app.get('/things/:thingId', async (req, res) => {
     const { thingId } = req.params;
-    res.send(await typeDB.getAThing(thingId));
+    //res.send(await typeDB.getAThing(thingId));
+    res.send(await getAThing(thingId,true));
 })
 
-app.get("/relations", async (req, res) => {
-    res.send(await typeDB.getRelations());
-});
+app.get('/things/:thingId/features', async (req, res) => {
+    const { thingId } = req.params;
+    const features = await getRelationsOfAThing(thingId);
+    res.send(features);
+})
+
+app.get('/things/:thingId/attributes', async (req, res) => {
+    const { thingId } = req.params;
+    const attributes = await getAttributesOfAThing(thingId);
+    res.send(attributes);
+})
+
+app.get('/things/:thingId/definition', async (req, res) => {
+    const { thingId } = req.params;
+    const definition = await getDefinitionOfAThing(thingId);
+    res.send(definition);
+})
 
 app.delete('/deleteThing/:thingId', async (req, res) => {
     try {
