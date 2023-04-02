@@ -1,8 +1,7 @@
 const express = require("express");
 const typeDB = require("./src/dbconfig");
-const { TypeDB, SessionType, TransactionType } = require("typedb-client");
 const deletes = require("./src/deleteFunctions");
-const {getThings,getAThing, getRelationsOfAThing,getAttributesOfAThing,getDefinitionOfAThing} = require('./src/getFunctions.js');
+const thingService = require('./src/service/thingService');
 const app = express();
 const port = 3030;
 app.use(express.json());
@@ -15,21 +14,33 @@ app.get('/', async (req, res) => {
     res.send("Hello World!!");
 })
 
-app.patch('/things/:thingId/attributes',async (req,res)=>{
-    await typeDB.updateAttributesOfAThing(req.params.thingId,req.body.attributes);
+app.patch('/things/:thingId/attributes', async (req, res) => {
+    await typeDB.updateAttributesOfAThing(req.params.thingId, req.body.attributes);
     res.sendStatus(200);
 })
 
 app.get('/things', async (req, res) => {
-    res.send(await getThings());
+    res.send(await thingService.getThings());
 })
 
-app.post('/things/:thingId',async(req,res)=>{
+app.post('/things/:thingId', async (req, res) => {
     const id = req.params.thingId;
     const body = req.body;
-    await typeDB.createNewThing(id,body.attributes,body.features)
-    res.sendStatus(200);
+    try {
+        await thingService.createNewThing({ thingId: id, attributes: body.attributes, features: body.features });
+        res.status(200).send(newMessage('success', 'thing created with success!!'));
+    } catch (error) {
+        if (error.name == "TypeDBClientError") res.status(400).send("Invalid parameters for a Thing!!");
+        else res.status(400).send(newMessage('error', error));
+    }
 })
+
+/* app.post('/things/:thingId',async(req,res)=>{
+    const id = req.params.thingId;
+    const body = req.body;
+    await createNewThing(id,body.attributes,body.features)
+    res.status(200).send(newMessage('success','thing created with success!!'));
+}) */
 
 /* app.post('things',async (req,res)=>{
     const body = req.body;
@@ -44,25 +55,34 @@ app.post('/things/:thingId',async(req,res)=>{
 app.get('/things/:thingId', async (req, res) => {
     const { thingId } = req.params;
     //res.send(await typeDB.getAThing(thingId));
-    res.send(await getAThing(thingId,true));
+    try {
+        let thing = await thingService.getAThing(thingId);
+        res.send(thing);
+    } catch (error) {
+        res.status(404).send(error);
+    }
 })
 
 app.get('/things/:thingId/features', async (req, res) => {
     const { thingId } = req.params;
-    const features = await getRelationsOfAThing(thingId);
-    res.send(features);
+    /* const features = await getRelationsOfAThing(thingId); */
+    try {
+        let thing = await thingService.getAThing(thingId);
+        res.send(thing.features);
+    } catch (error) {
+        res.status(404).send(error);
+    }
 })
 
 app.get('/things/:thingId/attributes', async (req, res) => {
     const { thingId } = req.params;
-    const attributes = await getAttributesOfAThing(thingId);
-    res.send(attributes);
-})
-
-app.get('/things/:thingId/definition', async (req, res) => {
-    const { thingId } = req.params;
-    const definition = await getDefinitionOfAThing(thingId);
-    res.send(definition);
+    /* const attributes = await getAttributesOfAThing(thingId); */
+    try {
+        let thing = await thingService.getAThing(thingId);
+        res.send(thing.attributes);
+    } catch (error) {
+        res.status(404).send(error);
+    }
 })
 
 app.delete('/deleteThing/:thingId', async (req, res) => {

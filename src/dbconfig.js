@@ -1,10 +1,7 @@
 const { TypeDB, SessionType, TransactionType } = require("typedb-client");
 const {
-    createJsonAllThing,
     createJsonAllRelation,
     newAttribute,
-    getAttributesFromAConceptGroup,
-    getRelationsFromAConceptGroup,
 } = require("./jsonEntityConstructor.js");
 
 const clientFunction = require('./clientFunction.js');
@@ -160,168 +157,10 @@ async function createNewThing(thingId, attributes, features) {
         post.join("")
     ];
     const realQuery = query.join("");
-    await writeTransaction.query.insert(realQuery);
+    writeTransaction.query.insert(realQuery);
     await writeTransaction.commit();
     await session.close();
     await client.close();
-}
-
-//TODO: riempire array di features per ogni ciclo, poi aggiungerlo a result in separata sede.
-const getAllConcepts = async (conceptMap) => {
-    let result = [];
-    for await (const concept of conceptMap) {
-        const owner = concept.get('x');
-        const attribute = concept.get('a');
-        const rel = concept.get('rel');
-        const relAttribute = concept.get('relAtt');
-        const role1 = concept.get('role1');
-        const role2 = concept.get('role2');
-        const relatedToId = concept.get('t');
-        result.push({
-            thing: owner,
-            attribute: { label: attribute.type.label.name, value: attribute.value },
-            relation: { label: rel.type.label.name, id: relAttribute.value },
-            roles: { from: role1.label.name, to: role2.label.name },
-            related: relatedToId.value
-        });
-    }
-    return result;
-}
-
-//!FIXME:  GUARDARE SOLO QUESTO METODO --> spostato in getFunctions
-async function getAThing(thingId) {
-    const client = TypeDB.coreClient("localhost:1729");
-    const session = await client.session(database, SessionType.DATA);
-    const readTransaction = await session.transaction(TransactionType.READ);
-    // *query per ragruppare tutto secondo l'entità specifica: per vedere provare query su db.
-    // *l'obbiettivo da ragiungere è di tornare le features con solo il ruolo ricoperto dall'entità..
-    // *il problema è trasformare il tutto in json in modo corretto.
-    // *features e attributes non devono essere array di oggetti ma un oggetto unico (VEDERE DITTO), poichè..
-    // *è più facile da trasformare e da modificare attributi secondo la query data dalla request.
-    const query = [
-        "match",
-        " $x isa entity, has thingId '" + thingId + "', has attribute $a;",
-        " $y isa entity, has thingId $t;",
-        " $role1 sub! relation:role;",
-        " $role2 sub! relation:role;",
-        " $rel($role1:$x,$role2:$y) isa relation, has attribute $relAtt;",
-        " get $a,$x,$rel,$t,$role1,$role2,$relAtt;",
-        " group $x;"
-    ];
-    // *Stream of conceptMapGroup --> vedere documentazione (si capisce poco)
-    const queryResult = readTransaction.query.matchGroup(query.join(""));
-    // *Array of conceptMapGroup --> vedere documentazione (si capisce poco)
-    const collector = await queryResult.collect();
-    // *there is only an element because we got a specific thing
-    const thisThingMap = collector[0];
-    // for each conceptMapGroup in Array
-    //for await (const element of collector) {
-    // *Array of ConceptMap --> vedere documentazione (si capisce poco)
-    let conceptMap = thisThingMap.conceptMaps;
-    //let owner = thisThingMap.owner;
-    // Prova per le relazioni
-    const concepts = await getAllConcepts(conceptMap);
-    const attributes = getAttributesFromAConceptGroup(concepts);
-    const features = getRelationsFromAConceptGroup(concepts, attributes.thingId);
-    const thing = {
-        thingId: attributes.thingId,
-        attributes: {},
-        features: features
-    };
-    delete attributes.thingId;
-    thing.attributes = attributes;
-    //}
-    await readTransaction.close();
-    await session.close();
-    await client.close();
-    return thing;
-};
-
-const getThings = async (withDefinition) => {
-    const client = TypeDB.coreClient("localhost:1729");
-    const session = await client.session(database, SessionType.DATA);
-    const readTransaction = await session.transaction(TransactionType.READ);
-    // *query per ragruppare tutto secondo l'entità specifica: per vedere provare query su db.
-    // *l'obbiettivo da ragiungere è di tornare le features con solo il ruolo ricoperto dall'entità..
-    // *il problema è trasformare il tutto in json in modo corretto.
-    // *features e attributes non devono essere array di oggetti ma un oggetto unico (VEDERE DITTO), poichè..
-    // *è più facile da trasformare e da modificare attributi secondo la query data dalla request.
-    const query = [
-        "match",
-        " $x isa entity, has attribute $a;",
-        " $y isa entity, has thingId $t;",
-        " $role1 sub! relation:role;",
-        " $role2 sub! relation:role;",
-        " $rel($role1:$x,$role2:$y) isa relation, has attribute $relAtt;",
-        " get $a,$x,$rel,$t,$role1,$role2,$relAtt;",
-        " group $x;"
-    ];
-    // *Stream of conceptMapGroup --> vedere documentazione (si capisce poco)
-    const queryResult = readTransaction.query.matchGroup(query.join(""));
-    // *Array of conceptMapGroup --> vedere documentazione (si capisce poco)
-    const collector = await queryResult.collect();
-    //const thisThingMap = collector[0];
-    let things = [];
-    //* for each conceptMapGroup in Array
-    for await (const element of collector) {
-        // *Array of ConceptMap --> vedere documentazione (si capisce poco)
-        let conceptMap = element.conceptMaps;
-        //let owner = thisThingMap.owner;
-        // Prova per le relazioni
-        const concepts = await getAllConcepts(conceptMap);
-        const attributes = getAttributesFromAConceptGroup(concepts);
-        const features = getRelationsFromAConceptGroup(concepts, attributes.thingId);
-        const thing = {};
-        if (withDefinition) {
-            thing = {
-                thingId: attributes.thingId,
-                definition: { category: attributes.category, typology: attributes.tipology },
-                attributes: {},
-                features: features
-            };
-            delete attributes.category;
-            delete attributes.tipology;
-        } else thing = {
-            thingId: attributes.thingId,
-            attributes: {},
-            features: features
-        };
-        delete attributes.thingId;
-        thing.attributes = attributes;
-        /* const thing = {
-            thingId: attributes.thingId,
-            attributes: {},
-            features: features
-        };
-        delete attributes.thingId;
-        thing.attributes = attributes; */
-        things.push(thing);
-    }
-    await readTransaction.close();
-    await session.close();
-    await client.close();
-    return things;
-}
-
-const relationsFromRemoteThing = async (remoteThing) => {
-    return await remoteThing.getRelations().collect();
-}
-
-const attributesFromRemoteThing = async (remoteThing) => {
-    return await remoteThing.getHas(true).collect();
-}
-
-const playersFromRemoteRelation = async (remoteThing) => {
-    return await remoteThing.getPlayersByRoleType();
-}
-
-const distinctAttributes = (myAttributes) => {
-    let iids = [];
-    const attributes = []
-    myAttributes.forEach(a => {
-        if (!iids.includes(a.iid)) { attributes.push(a); iids.push(a.iid) };
-    });
-    return attributes;
 }
 
 /**
@@ -416,9 +255,7 @@ module.exports = {
     closeSession,
     closeTransaction,
     createTransaction,
-    getThings,
     getRelations,
-    getAThing,
     createNewThing,
     //TODO: prova
     getAllThingId,

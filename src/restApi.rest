@@ -6,19 +6,45 @@ GET http://localhost:3030/things HTTP/1.1
 
 ###
 
-GET http://localhost:3030/things/camerino HTTP/1.1
+GET http://localhost:3030/things/power4 HTTP/1.1
 
 ###
 
-GET http://localhost:3030/things/camerino/definition HTTP/1.1
+GET http://localhost:3030/things/power3/attributes HTTP/1.1
 
 ###
 
-GET http://localhost:3030/things/camerino/attributes HTTP/1.1
+GET http://localhost:3030/things/power3/features HTTP/1.1
 
 ###
 
-GET http://localhost:3030/things/camerino/features HTTP/1.1
+POST http://localhost:3030/things/power4 HTTP/1.1
+content-type: application/json
+
+{
+    "attributes": {
+      "fgrgd": "20kw",
+      "label": "Energy Cabin"
+    },
+    "features": {
+      "equipmentRel": {
+        "equipment_net9": {
+          "equipping": "power4",
+          "equipped": "polo_ludovici_a"
+        },
+        "equipment_net9-1": {
+          "equipping": "power4",
+          "equipped": "polo_ludovici_b"
+        }
+      },
+      "power": {
+        "power-2": {
+          "powering": "power4",
+          "powered": "gw1"
+        }
+      }
+    }
+  }
 
 ###
 
@@ -31,7 +57,7 @@ content-type: application/json
       "capacity": "20kw",
       "category":"equipment",
       "label": "Energy Cabin",
-      "tipology": "energy_cabin"
+      "typology": "energy_cabin"
     },
     "features": {
       "equipmentRel": {
@@ -61,6 +87,6 @@ content-type: application/json
 {
   "attributes": {
     "label": "Camerino",
-    "tipology":"city"
+    "typology":"city"
     }
 }

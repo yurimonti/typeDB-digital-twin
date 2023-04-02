@@ -2,6 +2,19 @@ const clientFunction = require('./clientFunction.js');
 
 /**
  * 
+ * @returns {string[]} all thingIds that are present
+ */
+const getAllThingId = async () => {
+    const client = clientFunction.openClient();
+    const session = await clientFunction.openSession(client);
+    const readTransaction = await clientFunction.openTransaction(session);
+    const streamResult = await clientFunction.matchQuery(readTransaction, "match $x isa thingId;get $x;");
+    const collection = await streamResult.collect();
+    return collection.map(c => c.get('x').asAttribute().value);
+}
+
+/**
+ * 
  * @param {*} conceptMap 
  * @returns map each concept group in more objects that represent partial graph
  */
@@ -15,13 +28,19 @@ const getAllConcepts = async (conceptMap) => {
         const role1 = concept.get('role1');
         const role2 = concept.get('role2');
         const relatedToId = concept.get('t');
-        result.push({
+        let toAdd = {
             thing: owner,
             attribute: { label: attribute.type.label.name, value: attribute.value },
-            relation: { label: rel.type.label.name, id: relAttribute.value },
-            roles: { from: role1.label.name, to: role2.label.name },
-            related: relatedToId.value
-        });
+            relation: {},
+            roles: {},
+            related: ""
+        }
+        if (rel) {
+            toAdd.relation = { label: rel.type.label.name, id: relAttribute.value };
+            toAdd.roles = { from: role1.label.name, to: role2.label.name };
+            toAdd.related = relatedToId.value;
+        }
+        result.push(toAdd);
     }
     return result;
 }
@@ -52,50 +71,42 @@ function getAttributesFromAConceptGroup(aConceptGroup) {
 function getRelationsFromAConceptGroup(aConceptGroup, thingId) {
     let features = {};
     aConceptGroup.forEach(c => {
-        if (features[c.relation.label] === undefined) features = {
-            ...features,
-            [c.relation.label]: {
-                [c.relation.id]: {
-                    [c.roles.from]: thingId,
-                    [c.roles.to]: c.related
-                }
-            }
-        }
-        else {
-            const label = features[c.relation.label];
-            if (label[c.relation.id] === undefined) {
-                features[c.relation.label] = {
-                    ...label,
+        if (Object.keys(c.relation).length > 0) {
+            if (features[c.relation.label] === undefined) features = {
+                ...features,
+                [c.relation.label]: {
                     [c.relation.id]: {
                         [c.roles.from]: thingId,
                         [c.roles.to]: c.related
                     }
-                };
-                //console.log(features);
+                }
+            }
+            else {
+                const label = features[c.relation.label];
+                if (label[c.relation.id] === undefined) {
+                    features[c.relation.label] = {
+                        ...label,
+                        [c.relation.id]: {
+                            [c.roles.from]: thingId,
+                            [c.roles.to]: c.related
+                        }
+                    };
+                    //console.log(features);
+                }
             }
         }
     });
     return features;
 }
 
-const fillThing = (concepts,withDefinition) =>{
+const fillThing = (concepts) => {
     const attributes = getAttributesFromAConceptGroup(concepts);
-    const features = getRelationsFromAConceptGroup(concepts, attributes.thingId);
-    let thing = {};
-    if (withDefinition) {
-        thing = {
-            thingId: attributes.thingId,
-            definition: { category: attributes.category, typology: attributes.tipology },
-            attributes: {},
-            features: features
-        };
-        delete attributes.category;
-        delete attributes.tipology;
-    } else thing = {
+    let thing = {
         thingId: attributes.thingId,
-        attributes: {},
-        features: features
+        attributes: {}
     };
+    const features = getRelationsFromAConceptGroup(concepts, attributes.thingId);
+    thing = { ...thing, features: features };
     delete attributes.thingId;
     thing.attributes = attributes;
     return thing;
@@ -104,14 +115,12 @@ const fillThing = (concepts,withDefinition) =>{
 /**
  * 
  * @param {string} thingId id of thing that we want to get
- * @param {boolean | undefined} withDefinition if present return category and typology in definition object, 
- *  otherwise are setted on attributes object
  * @returns a Thing that we want to search
  */
-async function getAThing(thingId, withDefinition) {
+async function getAThing(thingId) {
     const client = clientFunction.openClient();
     const session = await clientFunction.openSession(client);
-    const readTransaction = await clientFunction.openTransaction(session, true);
+    const readTransaction = await clientFunction.openTransaction(session);
     const query = [
         "match",
         " $x isa entity, has thingId '" + thingId + "', has attribute $a;",
@@ -122,12 +131,23 @@ async function getAThing(thingId, withDefinition) {
         " get $a,$x,$rel,$t,$role1,$role2,$relAtt;",
         " group $x;"
     ];
+    let query2 = [
+        "match",
+        " $x isa entity, has thingId '" + thingId + "' ,has attribute $a;", ,
+        " not {($x,$y) isa relation ;};",
+        " get $a,$x;",
+        " group $x;"
+    ];
     // *Stream of conceptMapGroup --> vedere documentazione (si capisce poco)
-    const queryResult = readTransaction.query.matchGroup(query.join(""));
-    // *Array of conceptMapGroup --> vedere documentazione (si capisce poco)
+    let queryResult = readTransaction.query.matchGroup(query.join(""));
     const collector = await queryResult.collect();
+    queryResult = readTransaction.query.matchGroup(query2.join(""));
+    // *Array of conceptMapGroup --> vedere documentazione (si capisce poco)
+    const collector2 = await queryResult.collect();
     // *there is only an element because we got a specific thing
-    const thisThingMap = collector[0];
+    const thisThingMap = collector.concat(collector2)[0];
+    let thing = {};
+    if(!thisThingMap) return thing;
     // for each conceptMapGroup in Array
     //for await (const element of collector) {
     // *Array of ConceptMap --> vedere documentazione (si capisce poco)
@@ -135,7 +155,7 @@ async function getAThing(thingId, withDefinition) {
     //let owner = thisThingMap.owner;
     // Prova per le relazioni
     const concepts = await getAllConcepts(conceptMap);
-    const thing = fillThing(concepts,withDefinition);
+    thing = fillThing(concepts);
     //}
     await clientFunction.closeTransaction(readTransaction);
     await clientFunction.closeSession(session);
@@ -143,31 +163,53 @@ async function getAThing(thingId, withDefinition) {
     return thing;
 };
 
-const getRelationsOfAThing = async (thingId) =>{
-    const result = await getAThing(thingId,true);
+const getRelationsOfAThing = async (thingId) => {
+    const result = await getAThing(thingId, true);
     return result.features;
 }
 
-const getAttributesOfAThing = async (thingId) =>{
-    const result = await getAThing(thingId,true);
+const getAttributesOfAThing = async (thingId) => {
+    const result = await getAThing(thingId, true);
     return result.attributes;
 }
 
-const getDefinitionOfAThing = async (thingId) =>{
-    const result = await getAThing(thingId,true);
+const getDefinitionOfAThing = async (thingId) => {
+    const result = await getAThing(thingId, true);
     return result.definition;
 }
 
-const getThings = async (withDefinition) => {
-    const client = clientFunction.openClient();
-    const session = await clientFunction.openSession(client);
-    const readTransaction = await clientFunction.openTransaction(session, true);
-    // *query per ragruppare tutto secondo l'entità specifica: per vedere provare query su db.
-    // *l'obbiettivo da ragiungere è di tornare le features con solo il ruolo ricoperto dall'entità..
-    // *il problema è trasformare il tutto in json in modo corretto.
-    // *features e attributes non devono essere array di oggetti ma un oggetto unico (VEDERE DITTO), poichè..
-    // *è più facile da trasformare e da modificare attributi secondo la query data dalla request.
-    const query = [
+const execGetAThingQuery = async (transaction) => {
+    let query = [
+        "match",
+        " $x isa entity, has thingId '" + thingId + "', has attribute $a;",
+        " $y isa entity, has thingId $t;",
+        " $role1 sub! relation:role;",
+        " $role2 sub! relation:role;",
+        " $rel($role1:$x,$role2:$y) isa relation, has attribute $relAtt;",
+        " get $a,$x,$rel,$t,$role1,$role2,$relAtt;",
+        " group $x;"
+    ];
+    // *Stream of conceptMapGroup --> vedere documentazione (si capisce poco)
+    let queryResult = transaction.query.matchGroup(query.join(""));
+    // *Array of conceptMapGroup --> vedere documentazione (si capisce poco)
+    let collector1 = await queryResult.collect();
+    query = [
+        "match",
+        " $x isa entity, has thingId '" + thingId + "' ,has attribute $a;", ,
+        " not {($x,$y) isa relation ;};",
+        " get $a,$x;",
+        " group $x;"
+    ];
+    queryResult = transaction.query.matchGroup(query.join(""));
+    let collector2 = await queryResult.collect();
+    // *Stream of conceptMapGroup --> vedere documentazione (si capisce poco)
+    queryResult = transaction.query.matchGroup(query.join(""));
+    // *Array of conceptMapGroup --> vedere documentazione (si capisce poco)
+    return collector1.concat(collector2)[0];
+}
+
+const execGetAllThingQuery = async (transaction) => {
+    let query = [
         "match",
         " $x isa entity, has attribute $a;",
         " $y isa entity, has thingId $t;",
@@ -178,10 +220,29 @@ const getThings = async (withDefinition) => {
         " group $x;"
     ];
     // *Stream of conceptMapGroup --> vedere documentazione (si capisce poco)
-    const queryResult = readTransaction.query.matchGroup(query.join(""));
+    let queryResult = transaction.query.matchGroup(query.join(""));
     // *Array of conceptMapGroup --> vedere documentazione (si capisce poco)
-    const collector = await queryResult.collect();
-    //const thisThingMap = collector[0];
+    let collector1 = await queryResult.collect();
+    query = [
+        "match",
+        " $x isa entity, has attribute $a;", ,
+        " not {($x,$y) isa relation ;};",
+        " get $a,$x;",
+        " group $x;"
+    ];
+    queryResult = transaction.query.matchGroup(query.join(""));
+    let collector2 = await queryResult.collect();
+    // *Stream of conceptMapGroup --> vedere documentazione (si capisce poco)
+    queryResult = transaction.query.matchGroup(query.join(""));
+    // *Array of conceptMapGroup --> vedere documentazione (si capisce poco)
+    return collector1.concat(collector2);
+}
+
+const getThings = async () => {
+    const client = clientFunction.openClient();
+    const session = await clientFunction.openSession(client);
+    const readTransaction = await clientFunction.openTransaction(session);
+    let collector = await execGetAllThingQuery(readTransaction);
     let things = [];
     //* for each conceptMapGroup in Array
     for await (const element of collector) {
@@ -189,8 +250,8 @@ const getThings = async (withDefinition) => {
         let conceptMap = element.conceptMaps;
         //let owner = thisThingMap.owner;
         // Prova per le relazioni
-        const concepts = await getAllConcepts(conceptMap);
-        const thing = fillThing(concepts,withDefinition);;
+        const concepts = await getAllConcepts(conceptMap, true);
+        const thing = fillThing(concepts, true);;
         things.push(thing);
     }
     await clientFunction.closeTransaction(readTransaction);
@@ -199,10 +260,40 @@ const getThings = async (withDefinition) => {
     return things;
 }
 
+const provaMethod = async () => {
+    const client = clientFunction.openClient();
+    const session = await clientFunction.openSession(client);
+    const readTransaction = await clientFunction.openTransaction(session);
+    const query = [
+        "match",
+        " $x isa entity, has attribute $a;",
+        " $y isa entity;",
+        " not {($x,$y);};",
+        " get $a,$x;",
+        " group $x;"
+    ];
+    const queryResult = readTransaction.query.matchGroup(query.join(""));
+    const collector = await queryResult.collect();
+    // *there is only an element because we got a specific thing
+    const thisThingMap = collector[0];
+    let conceptMap = thisThingMap.conceptMaps;
+    //let owner = thisThingMap.owner;
+    // Prova per le relazioni
+    const concepts = await getAllConcepts(conceptMap);
+    const thing = fillThing(concepts);
+    //}
+    await clientFunction.closeTransaction(readTransaction);
+    await clientFunction.closeSession(session);
+    await clientFunction.closeClient(client);
+    return thing;
+}
+
 module.exports = {
+    getAllThingId,
     getAThing,
     getRelationsOfAThing,
     getAttributesOfAThing,
     getDefinitionOfAThing,
-    getThings
+    getThings,
+    provaMethod
 }
