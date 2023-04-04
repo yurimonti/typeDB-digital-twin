@@ -1,5 +1,6 @@
 const getFunctions = require('../getFunctions.js');
 const postFunctions = require('../postFunctions.js');
+const updateFunctions = require('../updateFunctions.js');
 
 const getAllThings = async()=>{
     return await getFunctions.getThings();
@@ -18,4 +19,9 @@ const createAThing = async (thingToCreate) => {
     return await postFunctions.createThing(thingToCreate);
 }
 
-module.exports = { getAllThings,getThingById,createAThing,aThingIsPresentById }
+//TODO: inserire update totale
+const updateThing = async (thingId,attributes)=>{
+    await updateFunctions.updateAttributesOfAThing(thingId,attributes);
+}
+
+module.exports = { getAllThings,getThingById,createAThing,aThingIsPresentById,updateThing }

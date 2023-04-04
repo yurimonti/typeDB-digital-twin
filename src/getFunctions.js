@@ -121,7 +121,7 @@ async function getAThing(thingId) {
     const client = clientFunction.openClient();
     const session = await clientFunction.openSession(client);
     const readTransaction = await clientFunction.openTransaction(session);
-    const query = [
+    /* const query = [
         "match",
         " $x isa entity, has thingId '" + thingId + "', has attribute $a;",
         " $y isa entity, has thingId $t;",
@@ -145,7 +145,8 @@ async function getAThing(thingId) {
     // *Array of conceptMapGroup --> vedere documentazione (si capisce poco)
     const collector2 = await queryResult.collect();
     // *there is only an element because we got a specific thing
-    const thisThingMap = collector.concat(collector2)[0];
+    const thisThingMap = collector.concat(collector2)[0]; */
+    const thisThingMap = await execGetAThingQuery(readTransaction,thingId);
     let thing = {};
     if(!thisThingMap) return thing;
     // for each conceptMapGroup in Array
@@ -178,7 +179,7 @@ const getDefinitionOfAThing = async (thingId) => {
     return result.definition;
 }
 
-const execGetAThingQuery = async (transaction) => {
+const execGetAThingQuery = async (transaction,thingId) => {
     let query = [
         "match",
         " $x isa entity, has thingId '" + thingId + "', has attribute $a;",
@@ -202,12 +203,12 @@ const execGetAThingQuery = async (transaction) => {
     ];
     queryResult = transaction.query.matchGroup(query.join(""));
     let collector2 = await queryResult.collect();
-    // *Stream of conceptMapGroup --> vedere documentazione (si capisce poco)
-    queryResult = transaction.query.matchGroup(query.join(""));
     // *Array of conceptMapGroup --> vedere documentazione (si capisce poco)
     return collector1.concat(collector2)[0];
 }
 
+// exececutes query for thing with features and with none,
+// because the query with features cannot capture things with no features
 const execGetAllThingQuery = async (transaction) => {
     let query = [
         "match",

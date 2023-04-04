@@ -2,6 +2,7 @@ const express = require("express");
 const typeDB = require("./src/dbconfig");
 const deletes = require("./src/deleteFunctions");
 const thingService = require('./src/service/thingService');
+const { updateFeaturesOfAThing } = require('./src/updateFunctions');
 const app = express();
 const port = 3030;
 app.use(express.json());
@@ -15,8 +16,29 @@ app.get('/', async (req, res) => {
 })
 
 app.patch('/things/:thingId/attributes', async (req, res) => {
-    await typeDB.updateAttributesOfAThing(req.params.thingId, req.body.attributes);
-    res.sendStatus(200);
+    const id = req.params.thingId;
+    const body = req.body;
+    if (!body || Object.keys(body).length <= 0) res.sendStatus(404);
+    try {
+        await thingService.updateAttributesOfAThing(id, body?.attributes);
+        res.status(200).send(newMessage('success', 'thing successfully updated'))
+    } catch (error) {
+        if (error.name == "TypeDBClientError") res.status(400).send(error.message);
+        else res.status(400).send(newMessage('error', error));
+    }
+})
+
+app.patch('/things/:thingId/features', async (req, res) => {
+    const id = req.params.thingId;
+    const body = req.body;
+    if (!body || Object.keys(body).length <= 0) res.sendStatus(404);
+    try {
+        await updateFeaturesOfAThing(id, body.features);
+        res.sendStatus(200);
+    } catch (error) {
+        if (error.name == "TypeDBClientError") res.status(400).send(error.message);
+        else res.status(400).send(newMessage('error', error));
+    }
 })
 
 app.get('/things', async (req, res) => {
@@ -30,7 +52,7 @@ app.post('/things/:thingId', async (req, res) => {
         await thingService.createNewThing({ thingId: id, attributes: body.attributes, features: body.features });
         res.status(200).send(newMessage('success', 'thing created with success!!'));
     } catch (error) {
-        if (error.name == "TypeDBClientError") res.status(400).send("Invalid parameters for a Thing!!");
+        if (error.name == "TypeDBClientError") res.status(400).send(error.message);
         else res.status(400).send(newMessage('error', error));
     }
 })

@@ -6,7 +6,28 @@ GET http://localhost:3030/things HTTP/1.1
 
 ###
 
-GET http://localhost:3030/things/power4 HTTP/1.1
+GET http://localhost:3030/things/camerino HTTP/1.1
+
+###
+
+PATCH http://localhost:3030/things/camerino/features HTTP/1.1
+content-type: application/json
+
+{
+    "features": {
+      "location": {
+        "department_location": {
+          "locator": "camerino",
+          "located": "polo_ludovici_a"
+        },
+        "department_location2": {
+          "locator": "camerino",
+          "located": "polo_ludovici_b"
+        }
+      }
+    }
+  }
+
 
 ###
 
@@ -14,32 +35,36 @@ GET http://localhost:3030/things/power3/attributes HTTP/1.1
 
 ###
 
-GET http://localhost:3030/things/power3/features HTTP/1.1
+GET http://localhost:3030/things/power4/features HTTP/1.1
+
+
 
 ###
 
-POST http://localhost:3030/things/power4 HTTP/1.1
+PATCH http://localhost:3030/things/power3/features HTTP/1.1
 content-type: application/json
 
 {
     "attributes": {
       "fgrgd": "20kw",
-      "label": "Energy Cabin"
+      "label": "Energy Cabin",
+      "category": "sensor",
+      "typology":"ciao"
     },
     "features": {
       "equipmentRel": {
         "equipment_net9": {
-          "equipping": "power4",
+          "equipping": "power3",
           "equipped": "polo_ludovici_a"
         },
         "equipment_net9-1": {
-          "equipping": "power4",
+          "equipping": "power3",
           "equipped": "polo_ludovici_b"
         }
       },
       "power": {
         "power-2": {
-          "powering": "power4",
+          "powering": "power3",
           "powered": "gw1"
         }
       }
@@ -81,12 +106,12 @@ content-type: application/json
 
 ###
 
-PATCH http://localhost:3030/things/camerino/attributes HTTP/1.1
+PATCH http://localhost:3030/things/power3/attributes HTTP/1.1
 content-type: application/json
 
 {
   "attributes": {
-    "label": "Camerino",
-    "typology":"city"
+    "label": "power3",
+    "category":"booh"
     }
 }

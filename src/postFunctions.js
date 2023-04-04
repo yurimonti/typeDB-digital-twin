@@ -1,45 +1,10 @@
 const clientFunction = require('./clientFunction.js');
-
-const isADate = (value) => {
-    if (value.length === 24 && value.charAt(10) === 'T' && value.charAt(23) === 'Z') return true;
-    else return false;
-}
-
-//* get string of attributes of a thing
-const getAttributeQuery = (attributes) => {
-    let result = "";
-    let aKeys = Object.entries(attributes);
-    aKeys.length > 0 && aKeys.forEach(entry => {
-        let value = entry[1];
-        if (isADate(value)) result = result.concat(", has " + entry[0] + " " + value.slice(0, value.length - 1));
-        else typeof value !== 'string' ? result = result.concat(", has " + entry[0] + " " + value) : result = result.concat(", has " + entry[0] + " '" + value + "'");
-    });
-    result = result.concat(";");
-    return result;
-}
-
-//* get values regarded on each relations in a request body;
-const getRelationsQuery = (features) => {
-    //let result = "";
-    let arrayRel = [];
-    let relationKeys = Object.entries(features);
-    Object.keys(features).length > 0 && relationKeys.forEach(innerRelation => {
-        const relation = innerRelation[0];
-        const idKeys = Object.entries(innerRelation[1]);
-        idKeys.forEach(innerId => {
-            const relId = innerId[0];
-            const innerRole = Object.entries(innerId[1]);
-            arrayRel.push({
-                rel: relation, relId: relId, role1: innerRole[0][0], role2: innerRole[1][0], id1: innerRole[0][1], id2: innerRole[1][1]
-            });
-        })
-    })
-    return arrayRel;
-}
+const {getRelationsQuery,getAttributeQuery} = require('./queryUtils');
 
 //*create the match part and relations insert part of the query
 const createQueryToPut = (features) => {
-    let matchRelated = ["match"];
+    const featuresAreEmpty = Object.keys(features).length <= 0;
+    let matchRelated = !featuresAreEmpty ? ["match"] : [];
     let insertRelations = [];
     const rels = features ? getRelationsQuery(features) : [];
     rels.length > 0 && rels.forEach(obj => {
@@ -51,11 +16,16 @@ const createQueryToPut = (features) => {
     return { pre: matchRelated, post: insertRelations };
 }
 
+/**
+ * create a Thing if the parameters are right
+ * @param {object} toCreate 
+ */
 async function createThing(toCreate) {
     const client = clientFunction.openClient();
     const session = await clientFunction.openSession(client);
     const writeTransaction = await clientFunction.openTransaction(session, true);
-    const {thingId,attributes,features} = toCreate;
+    const { thingId, attributes, features } = toCreate;
+    if (!attributes || !features) throw "Payload with unknown content!";
     let attributeQuery = getAttributeQuery(attributes);
     const { pre, post } = createQueryToPut(features);
     let query = [
@@ -65,12 +35,12 @@ async function createThing(toCreate) {
         post.join("")
     ];
     writeTransaction.query.insert(query.join(""));
-    await clientFunction.closeTransaction(writeTransaction);
+    await writeTransaction.commit();
     await clientFunction.closeSession(session);
     await clientFunction.closeClient(client);
 }
 
-async function createNewThing(thingId, attributes, features) {
+/* async function createNewThing(thingId, attributes, features) {
     const client = clientFunction.openClient();
     const session = await clientFunction.openSession(client);
     const writeTransaction = await clientFunction.openTransaction(session, true);
@@ -80,7 +50,6 @@ async function createNewThing(thingId, attributes, features) {
     let query;
     if (features) {
         const { pre, post } = createQueryToPut(features);
-        //* creating query...
         query = [
             pre.join(""),
             " insert",
@@ -96,9 +65,8 @@ async function createNewThing(thingId, attributes, features) {
     await clientFunction.closeTransaction(writeTransaction);
     await clientFunction.closeSession(session);
     await clientFunction.closeClient(client);
-}
+} */
 
 module.exports = {
-    createNewThing,
     createThing
 }
