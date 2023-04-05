@@ -1,5 +1,7 @@
 const clientFunction = require('./clientFunction.js');
 
+//TODO: abilitare nelle query l'infer tramite TypeDBOptions = {infer:true}.
+
 /**
  * 
  * @returns {string[]} all thingIds that are present

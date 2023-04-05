@@ -10,6 +10,29 @@ GET http://localhost:3030/things/camerino HTTP/1.1
 
 ###
 
+PATCH http://localhost:3030/things/camerino HTTP/1.1
+content-type: application/json
+
+{
+    "attributes": {
+      "label": "Camerino"
+    },
+    "features": {
+      "location": {
+        "department_location": {
+          "locator": "camerino",
+          "located": "polo_ludovici_a"
+        },
+        "department_location2": {
+          "locator": "camerino",
+          "located": "polo_ludovici_b"
+        }
+      }
+    }
+  }
+
+###
+
 PATCH http://localhost:3030/things/camerino/features HTTP/1.1
 content-type: application/json
 

@@ -77,6 +77,45 @@ A Thing is composed by:
 | `thingId`      | `string` | **Required**. Id of thing to get |
 
 
+#### Create a specific Thing
+
+```http
+  POST /things/{thingId}
+  content-type: application/json
+
+{
+    "attributes": {
+      "nameAttribute1": "value1",
+      "nameAttribute1":"value2"
+    },
+    "features": {
+      "typeFeature1": {
+        "featureId1": {
+          "role1Id1": "thingId",
+          "role2Id2": "relatedToId1"
+        },
+        "featureId2": {
+          "role1Id1": "thingId",
+          "role2Id2": "relatedToId2"
+        }
+      },
+      "typeFeature2": {
+        "featureId3": {
+          "role1Id2": "thingId",
+          "role2Id": "relatedToId3"
+        }
+      }
+    }
+  }
+```
+
+| Parameter | Type     | Description                       |
+| :-------- | :------- | :-------------------------------- |
+| `thingId`      | `string` | **Required**. Id of thing to create |
+
+return `200` code if paramters corrispond to real parameters that are valids according to the schema, and create correlated Thing.
+return `400` code if parameters are not conformed to the schema.
+
 ## License
 
 [MIT](https://choosealicense.com/licenses/mit/)

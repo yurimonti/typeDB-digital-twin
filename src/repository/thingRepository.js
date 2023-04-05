@@ -20,8 +20,12 @@ const createAThing = async (thingToCreate) => {
 }
 
 //TODO: inserire update totale
-const updateThing = async (thingId,attributes)=>{
-    await updateFunctions.updateAttributesOfAThing(thingId,attributes);
+const updateAttributes = async (thingId,attributes)=>{
+    return await updateFunctions.updateAttributesOfAThing(thingId,attributes);
 }
 
-module.exports = { getAllThings,getThingById,createAThing,aThingIsPresentById,updateThing }
+const updateThing = async (thingId,attributes,features)=>{
+    await updateFunctions.updateThing(thingId,attributes,features);
+}
+
+module.exports = { getAllThings,getThingById,createAThing,aThingIsPresentById,updateThing, updateAttributes }

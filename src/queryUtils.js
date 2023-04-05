@@ -18,7 +18,6 @@ const getAttributeQuery = (attributes) => {
 
 //* get values regarded on each relations in a request body;
 const getRelationsQuery = (features) => {
-    //let result = "";
     let arrayRel = [];
     let relationKeys = Object.entries(features);
     Object.keys(features).length > 0 && relationKeys.forEach(innerRelation => {
@@ -35,6 +34,10 @@ const getRelationsQuery = (features) => {
     return arrayRel;
 }
 
+const getMatchQueryForAThing = (thingId) =>{
+    return "match $" + thingId + " isa entity, has thingId '" + thingId + "';";
+}
+
 module.exports = {
-    getAttributeQuery,getRelationsQuery,isADate
+    getAttributeQuery,getRelationsQuery,isADate,getMatchQueryForAThing
 }

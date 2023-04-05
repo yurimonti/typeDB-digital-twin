@@ -15,6 +15,19 @@ app.get('/', async (req, res) => {
     res.send("Hello World!!");
 })
 
+app.patch('/things/:thingId', async (req, res) => {
+    const id = req.params.thingId;
+    const body = req.body;
+    if (!body || Object.keys(body).length <= 0) res.sendStatus(404);
+    try {
+        await thingService.updateThing(id, body?.attributes,body?.features);
+        res.status(200).send(newMessage('success', 'thing successfully updated'))
+    } catch (error) {
+        if (error.name == "TypeDBClientError") res.status(400).send(error.message);
+        else res.status(400).send(newMessage('error', error));
+    }
+})
+
 app.patch('/things/:thingId/attributes', async (req, res) => {
     const id = req.params.thingId;
     const body = req.body;
@@ -34,7 +47,7 @@ app.patch('/things/:thingId/features', async (req, res) => {
     if (!body || Object.keys(body).length <= 0) res.sendStatus(404);
     try {
         await updateFeaturesOfAThing(id, body.features);
-        res.sendStatus(200);
+        res.status(200).send('features of '+id+' correctly updated!');
     } catch (error) {
         if (error.name == "TypeDBClientError") res.status(400).send(error.message);
         else res.status(400).send(newMessage('error', error));
