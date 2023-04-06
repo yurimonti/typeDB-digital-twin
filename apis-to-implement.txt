@@ -1,7 +1,7 @@
 - update thing by id --> delete the value to null and update others. || or delete all and add all in the body request.
 - update features of a thing --> delete the value to null and update others. || or delete all and add all features in the body request.
 - update parametrized feature params.
-- update parametrized feature params.
+- update parametrized attributes params.
 - delete attributes.
 - delete features.
 - delete a thing completly.

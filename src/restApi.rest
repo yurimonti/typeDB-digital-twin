@@ -10,12 +10,16 @@ GET http://localhost:3030/things/camerino HTTP/1.1
 
 ###
 
-PATCH http://localhost:3030/things/camerino HTTP/1.1
+GET http://localhost:3030/things/camerino/features/location/department_location/located HTTP/1.1
+
+###
+
+PATCH http://localhost:3030/things/camerino/features HTTP/1.1
 content-type: application/json
 
 {
     "attributes": {
-      "label": "Camerino"
+      "label": "camerino"
     },
     "features": {
       "location": {
@@ -54,7 +58,7 @@ content-type: application/json
 
 ###
 
-GET http://localhost:3030/things/power3/attributes HTTP/1.1
+GET http://localhost:3030/things/camerino/attributes HTTP/1.1
 
 ###
 

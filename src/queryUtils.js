@@ -3,8 +3,12 @@ const isADate = (value) => {
     else return false;
 }
 
+const getAnAttributeOfAThingQuery = (thingId,attribute) => {
+    return 'match $x isa entity, has thingId "'+thingId+'" , has '+attribute+' $a; get $a';
+}
+
 //* get string of attributes of a thing
-const getAttributeQuery = (attributes) => {
+const getAttributesQuery = (attributes) => {
     let result = "";
     let aKeys = Object.entries(attributes);
     aKeys.length > 0 && aKeys.forEach(entry => {
@@ -39,5 +43,5 @@ const getMatchQueryForAThing = (thingId) =>{
 }
 
 module.exports = {
-    getAttributeQuery,getRelationsQuery,isADate,getMatchQueryForAThing
+    getAttributesQuery,getRelationsQuery,isADate,getMatchQueryForAThing
 }

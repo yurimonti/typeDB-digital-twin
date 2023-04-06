@@ -1,7 +1,7 @@
 # typeDB-digital-twin
 
 typeDB-digital-twin is a management prototype tool based on a graph database model where assets, like IoT devices, can be represented in terms of their digital twins.
-In particullary we used typeDB for Database technology (see: [TypeDB official page](https://vaticle.com/typedb).).
+In particularly we used typeDB for Database technology (see: [TypeDB official page](https://vaticle.com/typedb).).
 The tool implements CRUD API (we take inspiration by [Eclipse Ditto APIs](https://www.eclipse.org/ditto/)) with additional search functionalities over digital twin properties.
 
 ## Table of content
@@ -13,12 +13,12 @@ The tool implements CRUD API (we take inspiration by [Eclipse Ditto APIs](https:
 
 ## What is a digital twin?
 
-Digital twin is a digital representation of a physical asset (pumps,turbines,sensor etc..).
+Digital twin is a digital representation of a physical asset (pumps, turbines, sensor, etc...).
 This feature is famous in asset-intensive industries.
 The real capability comes when an asset can be related to its surrounding environment, for instance a relation with other assets.
 Using General Electric’s definition of Digital Twin for reference: “Digital twins are software representations of assets and processes that are used to understand, predict, and optimize performance in order to achieve improved business outcomes. Digital twins consist of three components: a data model, a set of analytics or algorithms, and knowledge.”
 In our project we only focused on the data model parts.
-These types of model semantic can easly represented by a graph, and infact, these data are always stored using technolgies of Graph Databases.
+These types of model semantic can easly represented by a graph, and infact, these data are always stored using technologies of Graph Databases.
 For more information read this arcticle: [First Step to Digital Twin: Model your Asset Data](https://www.linkedin.com/pulse/first-step-digital-twin-model-your-asset-data-gregory-mckim/).
 
 
@@ -58,7 +58,7 @@ The base url is the localhost with port 3030  `localhost:3030`.
 A Thing is composed by:
 - `thingId`, that represents the ID of a a thing.
 - `attributes`, that represents the properties that a thing has.
-- `features`, that represents the the relation with its surrounding environment.
+- `features`, that represents the relation with its surrounding environment.
 
 #### Get all Things
 
@@ -113,8 +113,8 @@ A Thing is composed by:
 | :-------- | :------- | :-------------------------------- |
 | `thingId`      | `string` | **Required**. Id of thing to create |
 
-return `200` code if paramters corrispond to real parameters that are valids according to the schema, and create correlated Thing.
-return `400` code if parameters are not conformed to the schema.
+return `200` code if parameters correspond to real parameters that are valid according to the schema, and create correlated Thing.
+return `400` code if parameters are not compliant to the schema.
 
 ## License
 

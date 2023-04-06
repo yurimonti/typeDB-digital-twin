@@ -1,5 +1,5 @@
 const clientFunction = require('./clientFunction.js');
-const {getRelationsQuery,getAttributeQuery} = require('./queryUtils');
+const {getRelationsQuery,getAttributesQuery} = require('./queryUtils');
 
 //*create the match part and relations insert part of the query
 const createQueryToPut = (features) => {

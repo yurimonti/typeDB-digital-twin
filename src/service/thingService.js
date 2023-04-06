@@ -18,13 +18,15 @@ const createNewThing = async (thingToCreate) => {
     await thingRepository.createAThing(thingToCreate);
 }
 
+//TODO: mettere che cancella ed inserisce attributi (tranne thingId,category e typology)
 const updateAttributesOfAThing = async (thingId, attributes) => {
     const isPresent = await thingRepository.aThingIsPresentById(thingId);
     if (!isPresent) throw "Impossible to update: this Thing doesn't exist!";
-    if (!attributes) throw "Attributes are required..";
+    if (!attributes || Object.keys(attributes).length <=0) throw "Attributes are required..";
     if (attributes.thingId) throw "Is not possible to modify an id of a Thing!"
     if (attributes.category) throw "Is not possible to modify a category of a Thing";
     if (attributes.typology) throw "Is not possible to modify a typology of a Thing";
+
     const result = await thingRepository.updateAttributes(thingId, attributes);
     if (result.length <= 0) throw 'nothing updated or body contains unknown elements';
 }
@@ -32,14 +34,14 @@ const updateAttributesOfAThing = async (thingId, attributes) => {
 const updateThing = async (thingId, attributes, features) => {
     const isPresent = await thingRepository.aThingIsPresentById(thingId);
     if (!isPresent) throw "Impossible to update: this Thing doesn't exist!";
-    if ((!attributes && !features) || (Object.keys(attributes).length <= 0 && Object.keys(features).length <= 0))
+    if ((!attributes || Object.keys(attributes).length <= 0) && (!features || Object.keys(features).length <= 0))
         throw "Attributes or Features are required..";
-    if (attributes.thingId) throw "Is not possible to modify an id of a Thing!"
-    if (attributes.category) throw "Is not possible to modify a category of a Thing";
-    if (attributes.typology) throw "Is not possible to modify a typology of a Thing";
+    if (attributes?.thingId) throw "Is not possible to modify an id of a Thing!"
+    if (attributes?.category) throw "Is not possible to modify a category of a Thing";
+    if (attributes?.typology) throw "Is not possible to modify a typology of a Thing";
     await thingRepository.updateThing(thingId, attributes, features);
 }
 
 module.exports = {
-    getAThing, getThings, createNewThing, updateAttributesOfAThing, updateThing
+    getAThing, getThings, createNewThing, updateThing
 }

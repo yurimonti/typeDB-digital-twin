@@ -101,19 +101,20 @@ const updateThing = async (thingId, attributes, features) => {
     const toMatch = [getMatchQueryForAThing(thingId)];
     let toDelete = [" delete"];
     let toInsert = [" insert"];
+    console.log(toMatch);
     let attributesPart = (attributes && Object.keys(attributes).length > 0)
-        ? updateAttributesString(thingId, attributes) : [];
+        ? updateAttributesString(thingId, attributes) : {toMatch:[],toDelete:[],toInsert:[]};
     console.log('attributesPart --> ', attributesPart);
     let featuresPart = (features && Object.keys(features).length > 0)
-        ? updateFeaturesString(thingId, features) : [];
+        ? updateFeaturesString(thingId, features) : {toMatch:[],toDelete:[],toInsert:[]};
     console.log('featuresPart --> ', featuresPart);
-    attributesPart.toMatch = toMatch.concat(attributesPart.toMatch);
-    attributesPart.toDelete = toDelete.concat(attributesPart.toDelete);
-    attributesPart.toInsert = toInsert.concat(attributesPart.toInsert);
+    attributesPart.toMatch = toMatch.concat(attributesPart?.toMatch);
+    attributesPart.toDelete = toDelete.concat(attributesPart?.toDelete);
+    attributesPart.toInsert = toInsert.concat(attributesPart?.toInsert);
     const realPart = {
-        toMatch: attributesPart.toMatch.concat(featuresPart.toMatch),
-        toDelete: attributesPart.toDelete.concat(featuresPart.toDelete),
-        toInsert: attributesPart.toInsert.concat(featuresPart.toInsert)
+        toMatch: attributesPart.toMatch.concat(featuresPart?.toMatch),
+        toDelete: attributesPart.toDelete.concat(featuresPart?.toDelete),
+        toInsert: attributesPart.toInsert.concat(featuresPart?.toInsert)
     };
     console.log('real Part--> ', realPart);
     const query = realPart.toMatch.join("") + realPart.toDelete.join("") + realPart.toInsert.join("");
@@ -133,4 +134,4 @@ const updateThing = async (thingId, attributes, features) => {
     }
 }
 
-module.exports = { updateAttributesOfAThing, updateFeaturesOfAThing, updateThing }
+module.exports = {updateThing }

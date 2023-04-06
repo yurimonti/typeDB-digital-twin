@@ -1,8 +1,6 @@
 const express = require("express");
-const typeDB = require("./src/dbconfig");
 const deletes = require("./src/deleteFunctions");
 const thingService = require('./src/service/thingService');
-const { updateFeaturesOfAThing } = require('./src/updateFunctions');
 const app = express();
 const port = 3030;
 app.use(express.json());
@@ -12,9 +10,59 @@ const newMessage = (type, message) => {
 }
 
 app.get('/', async (req, res) => {
-    res.send("Hello World!!");
+    res.send("Welcome!!");
 })
 
+/**
+ * params: {
+ *  thingId --> id of a thing that we want to get,
+ *  attribute --> attribute that we want to obtain
+ * }
+ * return the value of attribute param for a specific thing with id = thingId
+ */
+app.get('/things/:thingId/attributes/:attribute', async (req,res)=>{
+    const {thingId,attribute} = req.params;
+    const result = await thingService.getAThing(thingId);
+    const toReturn = result.attributes[attribute];
+    if(!toReturn) res.status(404).send(attribute+" attribute not found for thing "+thingId);
+    res.send(toReturn);
+})
+
+/**
+ * params: {
+ *  thingId --> id of a thing that we want to get,
+ *  featuresPath --> path of feature that we want to obtain
+ * }
+ * return the value of feature param for a specific thing with id = thingId
+ */
+app.get('/things/:thingId/features/:featuresPath(*)', async (req,res)=>{
+    const {thingId,featuresPath} = req.params;
+    let pathToResult = featuresPath.split('/');
+    const thing = await thingService.getAThing(thingId);
+    let toReturn = thing.features;
+    let notFound;
+    if(!toReturn) res.status(404).send("features not found for thing "+thingId);
+    for(const key of pathToResult){
+        toReturn = toReturn[key];
+        if(!toReturn){
+            notFound = key;
+            break;
+        };
+    }
+    if(!toReturn) res.status(404).send(notFound +" feature not found for thing "+thingId);
+    res.send(toReturn);
+})
+
+/**
+ * params: {
+ *  thingId --> id of a thing that we want to get,
+ * },
+ * body: {
+ *  attributes:{} --> attributes of thing with id = thingId, that we want to update, if they are present,
+ *  features:{} --> features of thing with id = thingId, that we want to update, if they are present 
+ * }
+ * update thing with id = thingId
+ */
 app.patch('/things/:thingId', async (req, res) => {
     const id = req.params.thingId;
     const body = req.body;
@@ -28,12 +76,21 @@ app.patch('/things/:thingId', async (req, res) => {
     }
 })
 
+/**
+ * params: {
+ *  thingId --> id of a thing that we want to get,
+ * },
+ * body: {
+ *  attributes:{} --> attributes of thing with id = thingId, that we want to update, if they are present
+ * }
+ * update attributes of thing with id = thingId
+ */
 app.patch('/things/:thingId/attributes', async (req, res) => {
     const id = req.params.thingId;
     const body = req.body;
     if (!body || Object.keys(body).length <= 0) res.sendStatus(404);
     try {
-        await thingService.updateAttributesOfAThing(id, body?.attributes);
+        await thingService.updateThing(id, body?.attributes);
         res.status(200).send(newMessage('success', 'thing successfully updated'))
     } catch (error) {
         if (error.name == "TypeDBClientError") res.status(400).send(error.message);
@@ -41,23 +98,47 @@ app.patch('/things/:thingId/attributes', async (req, res) => {
     }
 })
 
+/**
+ * params: {
+ *  thingId --> id of a thing that we want to get,
+ * },
+ * body: {
+ *  features:{} --> features of thing with id = thingId, that we want to update, if they are present 
+ * }
+ * update features of thing with id = thingId
+ */
 app.patch('/things/:thingId/features', async (req, res) => {
     const id = req.params.thingId;
     const body = req.body;
     if (!body || Object.keys(body).length <= 0) res.sendStatus(404);
     try {
-        await updateFeaturesOfAThing(id, body.features);
-        res.status(200).send('features of '+id+' correctly updated!');
+        await thingService.updateThing(id, undefined ,body?.features);
+        res.status(200).send(newMessage('success','features of '+id+' correctly updated!'));
     } catch (error) {
         if (error.name == "TypeDBClientError") res.status(400).send(error.message);
         else res.status(400).send(newMessage('error', error));
     }
 })
 
+/**
+ * return all things
+ */
 app.get('/things', async (req, res) => {
     res.send(await thingService.getThings());
 })
 
+
+/**
+ * params:{
+ *  thingId --> id of a thing that we want to create
+ * }
+ * body: {
+ *  attributes:{} --> attributes associated to the thing
+ *  features:{} --> features associated to the thing
+ * }
+ * 
+ * create new thing if thingId isn't already exists
+ */
 app.post('/things/:thingId', async (req, res) => {
     const id = req.params.thingId;
     const body = req.body;
@@ -69,35 +150,33 @@ app.post('/things/:thingId', async (req, res) => {
         else res.status(400).send(newMessage('error', error));
     }
 })
+//TODO: eliminare ed aggiungere gli attributi
+app.post('/things/:thingId/attributes', async (req, res) => {
+    
+})
 
-/* app.post('/things/:thingId',async(req,res)=>{
-    const id = req.params.thingId;
-    const body = req.body;
-    await createNewThing(id,body.attributes,body.features)
-    res.status(200).send(newMessage('success','thing created with success!!'));
-}) */
-
-/* app.post('things',async (req,res)=>{
-    const body = req.body;
-    try {
-        const newThing = await typeDB.createThing(body);
-        res.send(newThing);
-    } catch (error) {
-        res.sendStatus(400).send(newMessage('error','impossible to create this thing'));
-    }
-}) */
-
+/**
+ * params: {
+ *  thingId --> id of a thing that we want to get,
+ * }
+ * return thing with id = thingId
+ */
 app.get('/things/:thingId', async (req, res) => {
     const { thingId } = req.params;
-    //res.send(await typeDB.getAThing(thingId));
     try {
-        let thing = await thingService.getAThing(thingId);
+        const thing = await thingService.getAThing(thingId);
         res.send(thing);
     } catch (error) {
         res.status(404).send(error);
     }
 })
 
+/**
+ * params: {
+ *  thingId --> id of a thing that we want to get,
+ * }
+ * return features of thing with id = thingId
+ */
 app.get('/things/:thingId/features', async (req, res) => {
     const { thingId } = req.params;
     /* const features = await getRelationsOfAThing(thingId); */
@@ -109,6 +188,12 @@ app.get('/things/:thingId/features', async (req, res) => {
     }
 })
 
+/**
+ * params: {
+ *  thingId --> id of a thing that we want to get,
+ * }
+ * return attributes of thing with id = thingId
+ */
 app.get('/things/:thingId/attributes', async (req, res) => {
     const { thingId } = req.params;
     /* const attributes = await getAttributesOfAThing(thingId); */
@@ -193,5 +278,5 @@ app.delete("/deleteMultipleRelations", async (req, res) => {
 });
 
 app.listen(port, () => {
-    console.log(`Example app listening on port ${port}`);
+    console.log(`typeDB-digital-twin listening on port: ${port}`);
 })

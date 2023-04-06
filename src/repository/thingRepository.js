@@ -19,13 +19,8 @@ const createAThing = async (thingToCreate) => {
     return await postFunctions.createThing(thingToCreate);
 }
 
-//TODO: inserire update totale
-const updateAttributes = async (thingId,attributes)=>{
-    return await updateFunctions.updateAttributesOfAThing(thingId,attributes);
-}
-
 const updateThing = async (thingId,attributes,features)=>{
     await updateFunctions.updateThing(thingId,attributes,features);
 }
 
-module.exports = { getAllThings,getThingById,createAThing,aThingIsPresentById,updateThing, updateAttributes }
+module.exports = { getAllThings,getThingById,createAThing,aThingIsPresentById,updateThing }
