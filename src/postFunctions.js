@@ -1,9 +1,9 @@
 const clientFunction = require('./clientFunction.js');
-const {getRelationsQuery,getAttributesQuery} = require('./queryUtils');
+const { getRelationsQuery, getAttributesQuery, insertAttributeForAThingQuery, getMatchQueryForAThing } = require('./queryUtils');
 
 //*create the match part and relations insert part of the query
 const createQueryToPut = (features) => {
-    const featuresAreEmpty = Object.keys(features).length <= 0;
+    const featuresAreEmpty = !features || Object.keys(features).length <= 0;
     let matchRelated = !featuresAreEmpty ? ["match"] : [];
     let insertRelations = [];
     const rels = features ? getRelationsQuery(features) : [];
@@ -26,7 +26,7 @@ async function createThing(toCreate) {
     const writeTransaction = await clientFunction.openTransaction(session, true);
     const { thingId, attributes, features } = toCreate;
     if (!attributes || !features) throw "Payload with unknown content!";
-    let attributeQuery = getAttributeQuery(attributes);
+    let attributeQuery = getAttributesQuery(attributes);
     const { pre, post } = createQueryToPut(features);
     let query = [
         pre.join(""),
@@ -38,6 +38,28 @@ async function createThing(toCreate) {
     await writeTransaction.commit();
     await clientFunction.closeSession(session);
     await clientFunction.closeClient(client);
+}
+
+async function addToAThing(thingId, attributes, features) {
+    const client = clientFunction.openClient();
+    const session = await clientFunction.openSession(client);
+    const writeTransaction = await clientFunction.openTransaction(session, true);
+    let attributeQuery = insertAttributeForAThingQuery(thingId, attributes);
+    console.log(attributeQuery);
+    const { pre, post } = createQueryToPut(features);
+    let featureQuery = pre.join("") + " insert " + getMatchQueryForAThing(thingId) + post.join("");
+    try {
+        attributes && await writeTransaction.query.insert(attributeQuery);
+        features && await writeTransaction.query.insert(featureQuery);
+    } catch (error) {
+        console.log(error);
+        await writeTransaction.rollback();
+    } finally {
+        await writeTransaction.commit();
+        await clientFunction.closeSession(session);
+        await clientFunction.closeClient(client);
+    }
+
 }
 
 /* async function createNewThing(thingId, attributes, features) {
@@ -68,5 +90,5 @@ async function createThing(toCreate) {
 } */
 
 module.exports = {
-    createThing
+    createThing, addToAThing
 }

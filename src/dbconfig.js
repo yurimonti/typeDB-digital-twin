@@ -65,7 +65,6 @@ const updateAttributesString = (thingId, attributes, features) => {
 const updateAttributesOfAThing = async (thingId, attributes) => {
     const { toMatch, toDelete, toInsert } = updateAttributesString(thingId, attributes);
     const query = toMatch.join("")+toDelete.join("")+toInsert.join("");
-    console.log(query);
     const client = TypeDB.coreClient("localhost:1729");
     const session = await client.session(database, SessionType.DATA);
     const writeTransaction = await session.transaction(TransactionType.WRITE);

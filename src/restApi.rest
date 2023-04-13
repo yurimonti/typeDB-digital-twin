@@ -1,4 +1,14 @@
-GET http://localhost:3030/ HTTP/1.1
+POST http://localhost:3030/things/env_1/attributes HTTP/1.1
+content-type: application/json
+
+{
+    "attributes": {
+      "fw_version": "1.0c",
+      "label": "Environmental 1",
+      "date": "2019-05-15T15:00:00.000Z",
+      "hw_version": "1.00.00"
+    }
+}
 
 ###
 
@@ -6,7 +16,7 @@ GET http://localhost:3030/things HTTP/1.1
 
 ###
 
-GET http://localhost:3030/things/camerino HTTP/1.1
+GET http://localhost:3030/things/env_1 HTTP/1.1
 
 ###
 
@@ -62,7 +72,7 @@ GET http://localhost:3030/things/camerino/attributes HTTP/1.1
 
 ###
 
-GET http://localhost:3030/things/power4/features HTTP/1.1
+GET http://localhost:3030/things/power2/features HTTP/1.1
 
 
 
@@ -104,7 +114,6 @@ POST http://localhost:3030/things/power2 HTTP/1.1
 content-type: application/json
 
 {
-    "thingId": "power2",
     "attributes": {
       "capacity": "20kw",
       "category":"equipment",
@@ -142,3 +151,18 @@ content-type: application/json
     "category":"booh"
     }
 }
+
+###
+
+DELETE  http://localhost:3030/things/power2/features HTTP/1.1
+content-type: application/json
+
+###
+
+DELETE  http://localhost:3030/things/env_1/attributes HTTP/1.1
+content-type: application/json
+
+###
+
+DELETE  http://localhost:3030/things/power2 HTTP/1.1
+content-type: application/json

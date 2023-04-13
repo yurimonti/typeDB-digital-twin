@@ -1,4 +1,7 @@
-const {TypeDB, SessionType, TransactionType} = require("typedb-client");
+const { TypeDB, SessionType, TransactionType } = require("typedb-client");
+const { isADate, getRelationsQuery, getMatchQueryForAThing } = require('./queryUtils');
+const clientFunction = require('./clientFunction');
+const queryUtils = require('./queryUtils');
 // const {
 //     createJsonAllThing,
 //     createJsonAllRelation,
@@ -8,14 +11,19 @@ const database = "API_ASSET#TYPEDB"; //inserire nome database
 
 
 async function deleteThing(thingId) {
-    const client = TypeDB.coreClient("localhost:1729");
-    const session = await client.session(database, SessionType.DATA);
-    const delTransaction = await session.transaction(TransactionType.WRITE);
-    let answer = await delTransaction.query.delete("match $p isa entity, has thingId '" + thingId + "'; delete $p isa entity;");
-    await delTransaction.commit();
-    await session.close();
-    await client.close();
-    return answer;
+    const client = await clientFunction.openClient();
+    const session = await clientFunction.openSession(client);
+    const delTransaction = await clientFunction.openTransaction(session, true);
+    try {
+        await delTransaction.query.delete(queryUtils.getDeleteThingQuery(thingId));
+    } catch (error) {
+        await delTransaction.rollback();
+        console.log(error);
+    } finally {
+        await delTransaction.commit();
+        await clientFunction.closeSession(session);
+        await clientFunction.closeClient(client);
+    }
 }
 
 async function deleteRelation(relationId) {
@@ -38,8 +46,8 @@ async function deleteThingAttribute(thingId, attributeName) {
     await session.close();
     await client.close();
     return answer;
-
 }
+
 async function deleteMultipleThings(reqQuery) {
     const client = TypeDB.coreClient("localhost:1729");
     const session = await client.session(database, SessionType.DATA);
@@ -154,6 +162,57 @@ async function deleteMultipleRelations(reqQuery) {
     return answer;
 }
 
+async function deleteAttributes(thingId,attributes) {
+    const query = queryUtils.deleteAttributeQuery(thingId,attributes);
+    const client = clientFunction.openClient();
+    const session = await clientFunction.openSession(client);
+    const writeTransaction = await clientFunction.openTransaction(session, true);
+    try {
+        await writeTransaction.query.delete(query);
+    } catch (error) {
+        await writeTransaction.rollback();
+        console.log(error);
+    } finally {
+        await writeTransaction.commit();
+        await clientFunction.closeSession(session);
+        await clientFunction.closeClient(client);
+    }
+}
+
+async function deleteFeatures(thingId) {
+    const query = queryUtils.deleteFeaturesQuery(thingId);
+    const client = clientFunction.openClient();
+    const session = await clientFunction.openSession(client);
+    const writeTransaction = await clientFunction.openTransaction(session, true);
+    try {
+        await writeTransaction.query.delete(query);
+    } catch (error) {
+        await writeTransaction.rollback();
+        console.log(error);
+    } finally {
+        await writeTransaction.commit();
+        await clientFunction.closeSession(session);
+        await clientFunction.closeClient(client);
+    }
+}
+
+async function deleteAnAttribute(thingId,attribute){
+    const query = queryUtils.deleteFeaturesQuery(thingId);
+    const client = clientFunction.openClient();
+    const session = await clientFunction.openSession(client);
+    const writeTransaction = await clientFunction.openTransaction(session, true);
+    try {
+        await writeTransaction.query.delete(query);
+    } catch (error) {
+        await writeTransaction.rollback();
+        console.log(error);
+    } finally {
+        await writeTransaction.commit();
+        await clientFunction.closeSession(session);
+        await clientFunction.closeClient(client);
+    }
+}
+
 
 module.exports = {
     deleteThing,
@@ -162,4 +221,6 @@ module.exports = {
     deleteMultipleThings,
     deleteMultipleThingsAttributes,
     deleteMultipleRelations,
+    deleteAttributes,
+    deleteFeatures
 };

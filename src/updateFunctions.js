@@ -52,9 +52,7 @@ const updateAttributesOfAThing = async (thingId, attributes) => {
     toMatch = toMatchAdd.concat(toMatch);
     toDelete = toDeleteAdd.concat(toDelete);
     toInsert = toInsertAdd.concat(toInsert);
-    console.log('toMatch part of query', toMatch);
     const query = toMatch.join("") + toDelete.join("") + toInsert.join("");
-    console.log(query);
     const client = clientFunction.openClient();
     const session = await clientFunction.openSession(client);
     const writeTransaction = await clientFunction.openTransaction(session, true);
@@ -101,13 +99,10 @@ const updateThing = async (thingId, attributes, features) => {
     const toMatch = [getMatchQueryForAThing(thingId)];
     let toDelete = [" delete"];
     let toInsert = [" insert"];
-    console.log(toMatch);
     let attributesPart = (attributes && Object.keys(attributes).length > 0)
         ? updateAttributesString(thingId, attributes) : {toMatch:[],toDelete:[],toInsert:[]};
-    console.log('attributesPart --> ', attributesPart);
     let featuresPart = (features && Object.keys(features).length > 0)
         ? updateFeaturesString(thingId, features) : {toMatch:[],toDelete:[],toInsert:[]};
-    console.log('featuresPart --> ', featuresPart);
     attributesPart.toMatch = toMatch.concat(attributesPart?.toMatch);
     attributesPart.toDelete = toDelete.concat(attributesPart?.toDelete);
     attributesPart.toInsert = toInsert.concat(attributesPart?.toInsert);
@@ -116,9 +111,7 @@ const updateThing = async (thingId, attributes, features) => {
         toDelete: attributesPart.toDelete.concat(featuresPart?.toDelete),
         toInsert: attributesPart.toInsert.concat(featuresPart?.toInsert)
     };
-    console.log('real Part--> ', realPart);
     const query = realPart.toMatch.join("") + realPart.toDelete.join("") + realPart.toInsert.join("");
-    console.log('real query--> ', query);
     const client = clientFunction.openClient();
     const session = await clientFunction.openSession(client);
     const writeTransaction = await clientFunction.openTransaction(session, true);

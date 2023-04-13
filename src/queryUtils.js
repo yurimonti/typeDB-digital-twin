@@ -3,8 +3,8 @@ const isADate = (value) => {
     else return false;
 }
 
-const getAnAttributeOfAThingQuery = (thingId,attribute) => {
-    return 'match $x isa entity, has thingId "'+thingId+'" , has '+attribute+' $a; get $a';
+const getAnAttributeOfAThingQuery = (thingId, attribute) => {
+    return 'match $x isa entity, has thingId "' + thingId + '" , has ' + attribute + ' $a; get $a';
 }
 
 //* get string of attributes of a thing
@@ -17,6 +17,19 @@ const getAttributesQuery = (attributes) => {
         else typeof value !== 'string' ? result = result.concat(", has " + entry[0] + " " + value) : result = result.concat(", has " + entry[0] + " '" + value + "'");
     });
     result = result.concat(";");
+    return result;
+}
+
+const getAttributes = (thingId, attributes) => {
+    const thing = "$" + thingId;
+    let result = '';
+    let aKeys = Object.entries(attributes);
+    aKeys.length > 0 && aKeys.forEach(entry => {
+        let value = entry[1];
+        if (isADate(value)) result = result.concat(thing + " has " + entry[0] + " " + value.slice(0, value.length - 1));
+        else typeof value !== 'string' ? result = result.concat(thing + " has " + entry[0] + " " + value) : result = result.concat(thing + " has " + entry[0] + " '" + value + "'");
+        result = result.concat(";");
+    });
     return result;
 }
 
@@ -38,10 +51,69 @@ const getRelationsQuery = (features) => {
     return arrayRel;
 }
 
-const getMatchQueryForAThing = (thingId) =>{
+const getMatchQueryForAThing = (thingId) => {
     return "match $" + thingId + " isa entity, has thingId '" + thingId + "';";
 }
 
+const insertAttributeForAThingQuery = (thingId, attributes) => {
+    let match = getMatchQueryForAThing(thingId);
+    let insert = "insert " + getAttributes(thingId, attributes);
+    return match.concat(insert);
+}
+
+const insertFeatureForAThing = (thingId, features) => {
+    let match = "match " + getMatchQueryForAThing(thingId);
+    match.concat("")
+    let insert = "insert " + getAttributes(thingId, features);
+    return match.concat(insert);
+}
+
+const getDeleteThingQuery = (thingId) => {
+    const thing = "$" + thingId;
+    const other = "$entity";
+    const attributes = thing + " has attribute $a;";
+    const features = "$rel(" + thing + "," + other + ") isa relation;";
+    const match = getMatchQueryForAThing(thingId) + other + " isa entity;" + attributes + features;
+    const del = "delete " + thing + " isa entity;$a isa attribute;$rel isa relation;";
+    return match.concat(del);
+}
+
+const deleteAttributeQuery = (thingId, attributes) => {
+    const thing = "$" + thingId;
+    let match = getMatchQueryForAThing(thingId);
+    let del = 'delete';
+    if (!attributes) {
+        const not = "not {$a isa thingId;}; not {$a isa category;}; not {$a isa typology;};"
+        match = match+" " + thing + " has attribute $a;" + not;
+        del = "delete $a isa attribute;";
+    } else {
+        let aKeys = Object.entries(attributes);
+        aKeys.length > 0 && aKeys.forEach(entry => {
+            let key = entry[0];
+            match = match.concat(" $"+key + " isa " + key);
+            match = match.concat(";");
+            del = del.concat(" "+thing+" has "+"$"+key+";");
+        });
+    }
+    console.log(match.concat(del));
+    return match.concat(del);
+}
+
+const deleteFeaturesQuery = (thingId) => {
+    const thing = "$" + thingId;
+    const toMatch = getMatchQueryForAThing(thingId) + " $entity isa entity; $rel(" + thing + ",$entity) isa relation;";
+    let toDelete = "delete $rel isa relation;";
+    return toMatch.concat(toDelete);
+}
+
+
 module.exports = {
-    getAttributesQuery,getRelationsQuery,isADate,getMatchQueryForAThing
+    getAttributesQuery,
+    getRelationsQuery,
+    isADate,
+    getMatchQueryForAThing,
+    getDeleteThingQuery,
+    deleteAttributeQuery,
+    deleteFeaturesQuery,
+    insertAttributeForAThingQuery
 }
