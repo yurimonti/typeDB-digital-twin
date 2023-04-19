@@ -7,7 +7,7 @@ const {
 
 const clientFunction = require('./clientFunction.js');
 
-const database = "prova"; //inserire nome database
+const database = "API_ASSET#TYPEDB"; //inserire nome database
 const EmptyThing = {
     thingId: '',
     attributes: {},

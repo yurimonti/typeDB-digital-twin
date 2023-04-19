@@ -99,23 +99,7 @@ app.get('/things/:thingId/features', async (req, res) => {
     }
 })
 //greta
-app.get('/', (req, res) => {
-    res.send("Hello World!!");
-})
 
-/**
- * Get of all the things.
- */
-app.get('/things', async (req, res) => {
-    res.send(await typeDB.getThings());
-})
-
-/**
- * Get of all the relations.
- */
-app.get("/relations", async (req, res) => {
-    res.send(await typeDB.getRelations());
-});
 
 /**
  * Deletes only one thing with the specified thingId.
@@ -158,7 +142,7 @@ app.delete('/deleteThingAttribute/:thingId/attribute/:attributeName', async (req
 /**
  * Deletes more than one thing with the specified thingId.
  */
-app.delete("/deleteMultipleThings", async (req, res) => {
+app.delete("/things", async (req, res) => {
     try {
         await deletes.deleteMultipleThings(req.query);
         res.send({Success: 'Successful deletion.'});
@@ -170,7 +154,7 @@ app.delete("/deleteMultipleThings", async (req, res) => {
 /**
  * Deletes all attributes of the specified thing.
  */
-//todo controllare se cancella thingId
+//todo controllare se cancella thingId e vedere se funziona quella di yuri
 app.delete("/deleteMultipleThingsAttributes", async (req, res) => {
     try {
         await deletes.deleteMultipleThingsAttributes(req.query);
@@ -183,7 +167,7 @@ app.delete("/deleteMultipleThingsAttributes", async (req, res) => {
 /**
  * Deletes more than one relation with the specified relationId.
  */
-app.delete("/deleteMultipleRelations", async (req, res) => {
+app.delete("/relations", async (req, res) => {
     try {
         await deletes.deleteMultipleRelations(req.query);
         res.send({Success: 'Successful deletion.'});
@@ -522,12 +506,7 @@ app.listen(port, () => {
 
 
 //greta
-//         /**
-//          * Get of all the things.
-//          */
-//         app.get('/things', async (req, res) => {
-//             res.send(await typeDB.getThings());
-//         })
+//
 //
 //         /**
 //          * Get of all the relations.

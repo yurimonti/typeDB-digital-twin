@@ -113,9 +113,9 @@ async function deleteMultipleThings(reqQuery) {
      * @returns {Promise<undefined>} a {@link Promise} representing the deletion of multiple things
      */
     async function deleteMultipleThings(reqQuery) {
-        const conn = await connection.openConnection(false, true);
-
-// main
+        const client = clientFunction.openClient();
+        const session = await clientFunction.openSession(client);
+        const wTransaction = await clientFunction.openTransaction(session, true);
         let answer = undefined;
         if (JSON.stringify(reqQuery) === "{}") {
             throw 'Bad request, insert one or more parameters.';
@@ -129,31 +129,25 @@ async function deleteMultipleThings(reqQuery) {
                     if (key === 'thingId') {
                         for (let i = 0; i < value.length; i++) {
                             let attr = value[i];
-//yuri
-                            answer = await delTransaction.query.delete("match $p isa entity, has " + key + "'" + attr + "'; delete $p isa entity;");
-//greta
-                            // answer = await conn.transactionRef.query.delete("match $p isa entity, has " + key + "'" + attr + "'; delete $p isa entity;");
+
+                             answer = await wTransaction.query.delete("match $p isa entity, has " + key + "'" + attr + "'; delete $p isa entity;");
                         }
                     } else {
                         throw 'Bad request, one or more parameters not valid.';
                     }
                 } else {
                     if (key === 'thingId') {
-//yuri 
-                        answer = await delTransaction.query.delete("match $p isa entity, has " + key + "'" + value + "'; delete $p isa entity;");
-//gre
-                        //  answer = await conn.transactionRef.query.delete("match $p isa entity, has " + key + "'" + value + "'; delete $p isa entity;");
+
+                         answer = await wTransaction.query.delete("match $p isa entity, has " + key + "'" + value + "'; delete $p isa entity;");
                     } else {
                         throw 'Bad request, one or more parameters not valid.';
                     }
                 }
             }
         }
-
-// yuri
-        await delTransaction.commit();
-        await session.close();
-        await client.close();
+        await clientFunction.closeTransaction(wTransaction);
+        await clientFunction.closeSession(session);
+        await clientFunction.closeClient(client);
         return answer;
     }
 
