@@ -1,0 +1,14 @@
+- update thing by id --> delete the value to null and update others. || or delete all and add all in the body request.
+- update features of a thing --> delete the value to null and update others. || or delete all and add all features in the body request.
+- update parametrized feature params.
+- update parametrized attributes params.
+- delete attributes.
+- delete features.
+- delete a thing completly.
+- get parametrized for attributes.
+- get parametrized for features.
+
+
+POST --> add or update
+PATCH --> update what exists only
+PUT --> clean all and add only what's on the body
