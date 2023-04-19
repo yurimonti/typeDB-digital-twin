@@ -40,14 +40,30 @@ async function createThing(toCreate) {
     await clientFunction.closeClient(client);
 }
 
+function insertFeatures(thingId,features){
+    let insertRelations = ["insert"];
+    let matchRelated = ["match "];
+    matchRelated.push(" $"+thingId+" isa entity, has thingId '"+thingId+"';");
+    const rels = features ? getRelationsQuery(features) : [];
+    rels.length > 0 && rels.forEach(obj => {
+        let toPushBefore = " $" + obj.id2 + " isa entity, has thingId '" + obj.id2 + "';";
+        !matchRelated.includes(toPushBefore) &&
+            matchRelated.push(" $" + obj.id2 + " isa entity, has thingId '" + obj.id2 + "';");
+        insertRelations.push(" $" + obj.relId + "(" + obj.role1 + ":$" + obj.id1 + "," + obj.role2 + ":$" + obj.id2 + ") isa " + obj.rel + "; $" + obj.relId + " has relationId '" + obj.relId + "';");
+    });
+    return matchRelated.join("").concat(insertRelations.join(""));
+}
+
 async function addToAThing(thingId, attributes, features) {
+    console.log('entrato nell add');
     const client = clientFunction.openClient();
     const session = await clientFunction.openSession(client);
     const writeTransaction = await clientFunction.openTransaction(session, true);
-    let attributeQuery = insertAttributeForAThingQuery(thingId, attributes);
+    let attributeQuery = attributes && insertAttributeForAThingQuery(thingId, attributes);
     console.log(attributeQuery);
-    const { pre, post } = createQueryToPut(features);
-    let featureQuery = pre.join("") + " insert " + getMatchQueryForAThing(thingId) + post.join("");
+    //const { pre, post } = createQueryToPut(features);
+    let featureQuery = features && insertFeatures(thingId,features);
+    console.log(featureQuery);
     try {
         attributes && await writeTransaction.query.insert(attributeQuery);
         features && await writeTransaction.query.insert(featureQuery);

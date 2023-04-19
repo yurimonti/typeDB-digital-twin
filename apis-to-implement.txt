@@ -7,3 +7,8 @@
 - delete a thing completly.
 - get parametrized for attributes.
 - get parametrized for features.
+
+
+POST --> add or update
+PATCH --> update what exists only
+PUT --> clean all and add only what's on the body

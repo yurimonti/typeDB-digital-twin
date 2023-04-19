@@ -12,8 +12,36 @@ async function updateAttributeOfThing(thingId, attributes){
     attributesBodyKey.forEach(toModifyKey => {
         if(thing?.attributes[toModifyKey]) attributesToDelete = {...attributesToDelete,[toModifyKey]:attributes[toModifyKey]};
     });
-    await thingRepository.deleteThing(thingId,attributesToDelete);
+    if(Object.keys(attributesToDelete).length >0)await thingRepository.deleteThing(thingId,attributesToDelete);
     await thingRepository.updateThing(thingId,attributes,undefined,true);
+}
+
+//ToDo: da finire
+async function updateFeaturesOfThing(thingId,features){
+    let thing = await getAThing(thingId);
+    const keysBody = Object.keys(features);
+    let toDelete = {};
+    let toAdd ={};
+    keysBody.forEach(type => {
+        if(thing.features[type]){
+            const relIdType = Object.keys(features[type]);
+            let toRemove = {};
+            relIdType.forEach(relId => {
+                if(thing.features[type][relId]){
+                    let elementToRemove = thing.features[type][relId];
+                    toRemove = {...toRemove,[relId]:elementToRemove};
+                } else {
+                    let elementToAdd = {[relId]:features[type][relId]}
+                    toAdd = {...toAdd,[type]:elementToAdd};
+                }
+            });
+            if(toRemove && Object.keys(toRemove).length >0) toDelete = {...toDelete,[type]:toRemove};
+        }
+        else toAdd = {...toAdd,[type]:features[type]};
+    });
+    if(Object.keys(toDelete).length >0) await thingRepository.deleteThing(thingId,undefined,toDelete);
+    await thingRepository.updateThing(thingId,undefined,features,true);
+    /* return {toPush:toAdd,toDel:toDelete}; */
 }
 
 const getAThing = async (id) => {
@@ -70,23 +98,23 @@ const deleteAttributes = async (thingId)=>{
     if(!thingId) throw "Id of thing required";
     const isPresent = await thingRepository.aThingIsPresentById(thingId);
     if(!isPresent) throw "Impossible to delete: this Thing doesn't exist!";
-    await thingRepository.deleteThing(thingId,true,false);
+    await thingRepository.deleteThing(thingId,null);
 }
 
 const deleteFutures = async (thingId)=>{
     if(!thingId) throw "Id of thing required";
     const isPresent = await thingRepository.aThingIsPresentById(thingId);
     if(!isPresent) throw "Impossible to delete: this Thing doesn't exist!";
-    await thingRepository.deleteThing(thingId,false,true);
+    await thingRepository.deleteThing(thingId,undefined,null);
 }
 
 const deleteThing = async (thingId) => {
     if(!thingId) throw "Id of thing required";
     const isPresent = await thingRepository.aThingIsPresentById(thingId);
     if(!isPresent) throw "Impossible to delete: this Thing doesn't exist!";
-    await thingRepository.deleteThing(thingId,false,false);
+    await thingRepository.deleteThing(thingId);
 }
 
 module.exports = {
-    getAThing, getThings, createNewThing, updateThing,deleteAttributes,deleteFutures,deleteThing,addToThing,updateAttributeOfThing
+    getAThing, getThings, createNewThing, updateThing,deleteAttributes,deleteFutures,deleteThing,addToThing,updateAttributeOfThing,updateFeaturesOfThing
 }

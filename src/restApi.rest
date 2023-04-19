@@ -1,11 +1,63 @@
+GET http://localhost:3030/ HTTP/1.1
+content-type: application/json
+
+{
+    "thingId": "thingId",
+    "features": {
+      "sensor_location": {
+        "sens_location_env2": {
+          "located": "env_1",
+          "locator": "lb2"
+        },
+        "sens_location_env1": {
+          "located": "env_1",
+          "locator": "lb1"
+        }
+      },
+      "location": {
+        "department_location": {
+          "locator": "camerino",
+          "located": "polo_ludovici_a"
+        },
+        "department_location2": {
+          "locator": "camerino",
+          "located": "polo_ludovici_b"
+        }
+      }
+    }
+  }
+
+###
+
+POST http://localhost:3030/things/env_1/features HTTP/1.1
+content-type: application/json
+
+{
+    "features": {
+      "sensor_location": {
+        "sens_location_env1": {
+          "located": "env_1",
+          "locator": "lb1"
+        }
+      }
+    }
+  }
+
+###
+
+GET http://localhost:3030/things/env_1/features HTTP/1.1
+content-type: application/json
+
+###
+
 POST http://localhost:3030/things/env_1/attributes HTTP/1.1
 content-type: application/json
 
 {
     "attributes": {
-      "fw_version": "1.0c",
       "label": "Environmental 1",
       "date": "2019-05-15T15:00:00.000Z",
+      "fw_version": "1.0c",
       "hw_version": "1.00.00"
     }
 }
@@ -110,33 +162,20 @@ content-type: application/json
 
 ###
 
-POST http://localhost:3030/things/power2 HTTP/1.1
+POST http://localhost:3030/things/env_3 HTTP/1.1
 content-type: application/json
 
 {
     "attributes": {
-      "capacity": "20kw",
-      "category":"equipment",
-      "label": "Energy Cabin",
-      "typology": "energy_cabin"
+      "typology": "environmental",
+      "fw_version": "1.0c",
+      "category": "sensor",
+      "label": "Environmental 1",
+      "date": "2019-05-15T15:00:00.000Z",
+      "hw_version": "1.00.00"
     },
     "features": {
-      "equipmentRel": {
-        "equipment_net9": {
-          "equipping": "power2",
-          "equipped": "polo_ludovici_a"
-        },
-        "equipment_net9-1": {
-          "equipping": "power2",
-          "equipped": "polo_ludovici_b"
-        }
-      },
-      "power": {
-        "power-2": {
-          "powering": "power2",
-          "powered": "gw1"
-        }
-      }
+
     }
   }
 
@@ -154,12 +193,12 @@ content-type: application/json
 
 ###
 
-DELETE  http://localhost:3030/things/power2/features HTTP/1.1
+DELETE  http://localhost:3030/things/env_1/features HTTP/1.1
 content-type: application/json
 
 ###
 
-DELETE  http://localhost:3030/things/env_1/attributes HTTP/1.1
+DELETE  http://localhost:3030/things/env_3/attributes HTTP/1.1
 content-type: application/json
 
 ###

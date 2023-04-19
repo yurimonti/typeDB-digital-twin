@@ -1,3 +1,5 @@
+const {getThingKey,matchThing} = require('./service/queryConstructor');
+
 const isADate = (value) => {
     if (value.length === 24 && value.charAt(10) === 'T' && value.charAt(23) === 'Z') return true;
     else return false;
@@ -82,7 +84,7 @@ const deleteAttributeQuery = (thingId, attributes) => {
     const thing = "$" + thingId;
     let match = getMatchQueryForAThing(thingId);
     let del = 'delete';
-    if (!attributes) {
+    if (attributes === null) {
         const not = "not {$a isa thingId;}; not {$a isa category;}; not {$a isa typology;};"
         match = match+" " + thing + " has attribute $a;" + not;
         del = "delete $a isa attribute;";
@@ -90,20 +92,34 @@ const deleteAttributeQuery = (thingId, attributes) => {
         let aKeys = Object.entries(attributes);
         aKeys.length > 0 && aKeys.forEach(entry => {
             let key = entry[0];
-            match = match.concat(" $"+key + " isa " + key);
+            match = match.concat(" "+thing+ " has "+key + " $"+key);
             match = match.concat(";");
             del = del.concat(" "+thing+" has "+"$"+key+";");
         });
     }
-    console.log(match.concat(del));
     return match.concat(del);
 }
 
-const deleteFeaturesQuery = (thingId) => {
+const deleteFeaturesQuery = (thingId,features) => {
     const thing = "$" + thingId;
-    const toMatch = getMatchQueryForAThing(thingId) + " $entity isa entity; $rel(" + thing + ",$entity) isa relation;";
-    let toDelete = "delete $rel isa relation;";
-    return toMatch.concat(toDelete);
+    let toMatch = ["match"];
+    toMatch.push(" "+matchThing(thingId));
+    let toDelete = ["delete"];
+    if(features === null){
+        toMatch.push(" $entity isa entity; $rel(" + thing + ",$entity) isa relation;");
+        toDelete.push( " $rel isa relation;");
+    }else {
+        const featuresDestructured = getRelationsQuery(features);
+        featuresDestructured.length > 0 && featuresDestructured.forEach(obj => {
+            let toPushBefore = " " + matchThing(obj.id2);
+            !toMatch.includes(toPushBefore) && toMatch.push(toPushBefore);
+            toPushBefore = " $" + obj.relId + "(" + obj.role1 + ":"+ getThingKey(thingId) + "," + obj.role2 + ":$" + obj.id2 + ") isa " + obj.rel + "; $" + obj.relId + " has relationId '" + obj.relId + "';";
+            !toMatch.includes(toPushBefore) && toMatch.push(toPushBefore);
+            toPushBefore = " $" + obj.relId+" isa "+obj.rel+";";
+            !toDelete.includes(toPushBefore) && toDelete.push(toPushBefore);
+        });
+    }
+    return toMatch.join("").concat(toDelete.join(""));
 }
 
 

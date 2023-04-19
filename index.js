@@ -1,6 +1,7 @@
 const express = require("express");
 const deletes = require("./src/deleteFunctions");
 const thingService = require('./src/service/thingService');
+const {deleteFeaturesQuery} = require('./src/queryUtils');
 const app = express();
 const port = 3030;
 app.use(express.json());
@@ -10,7 +11,53 @@ const newMessage = (type, message) => {
 }
 
 app.get('/', async (req, res) => {
-    res.send("Welcome!!");
+    const body = req.body;
+    const result = await thingService.updateFeaturesOfThing('env_1',body?.features);
+    //vedere
+    let featToDelete = result.toDel;
+    res.send();
+    //res.send("Welcome!!");
+})
+
+//* GET requests
+/**
+ * return all things
+ */
+app.get('/things', async (req, res) => {
+    res.send(await thingService.getThings());
+})
+
+/**
+ * params: {
+ *  thingId --> id of a thing that we want to get,
+ * }
+ * return thing with id = thingId
+ */
+app.get('/things/:thingId', async (req, res) => {
+    const { thingId } = req.params;
+    try {
+        const thing = await thingService.getAThing(thingId);
+        res.send(thing);
+    } catch (error) {
+        res.status(404).send(error);
+    }
+})
+
+/**
+ * params: {
+ *  thingId --> id of a thing that we want to get,
+ * }
+ * return attributes of thing with id = thingId
+ */
+app.get('/things/:thingId/attributes', async (req, res) => {
+    const { thingId } = req.params;
+    /* const attributes = await getAttributesOfAThing(thingId); */
+    try {
+        let thing = await thingService.getAThing(thingId);
+        res.send(thing.attributes);
+    } catch (error) {
+        res.status(404).send(error);
+    }
 })
 
 /**
@@ -26,6 +73,23 @@ app.get('/things/:thingId/attributes/:attribute', async (req, res) => {
     const toReturn = result.attributes[attribute];
     if (!toReturn) res.status(404).send(attribute + " attribute not found for thing " + thingId);
     res.send(toReturn);
+})
+
+/**
+ * params: {
+ *  thingId --> id of a thing that we want to get,
+ * }
+ * return features of thing with id = thingId
+ */
+app.get('/things/:thingId/features', async (req, res) => {
+    const { thingId } = req.params;
+    /* const features = await getRelationsOfAThing(thingId); */
+    try {
+        let thing = await thingService.getAThing(thingId);
+        res.send(thing.features);
+    } catch (error) {
+        res.status(404).send(error);
+    }
 })
 
 /**
@@ -52,6 +116,111 @@ app.get('/things/:thingId/features/:featuresPath(*)', async (req, res) => {
     if (!toReturn) res.status(404).send(notFound + " feature not found for thing " + thingId);
     res.send(toReturn);
 })
+
+//*  POST requests
+
+/**
+ * body: {
+ *  thingId --> id of a thing that we want to create
+ *  attributes:{} --> attributes associated to the thing
+ *  features:{} --> features associated to the thing
+ * }
+ * 
+ * create new thing if thingId isn't already exists
+ */
+app.post("/things",async (req,res)=>{
+    const body = req.body;
+    if(!body.thingId) res.status(400).send(newMessage('error', 'thingId must be present!!'));
+    try {
+        await thingService.createNewThing({ thingId: body.thingId, attributes: body.attributes, features: body.features });
+        res.status(200).send(newMessage('success', 'thing created with success!!'));
+    } catch (error) {
+        if (error.name == "TypeDBClientError") res.status(400).send(error.message);
+        else res.status(400).send(newMessage('error', error));
+    }
+})
+
+/**
+ * params:{
+ *  thingId --> id of a thing that we want to create
+ * }
+ * body: {
+ *  attributes:{} --> attributes associated to the thing
+ *  features:{} --> features associated to the thing
+ * }
+ * 
+ * create new thing if thingId isn't already exists
+ */
+app.post('/things/:thingId', async (req, res) => {
+    const id = req.params.thingId;
+    const body = req.body;
+    try {
+        await thingService.createNewThing({ thingId: id, attributes: body.attributes, features: body.features });
+        res.status(200).send(newMessage('success', 'thing created with success!!'));
+    } catch (error) {
+        if (error.name == "TypeDBClientError") res.status(400).send(error.message);
+        else res.status(400).send(newMessage('error', error));
+    }
+})
+
+//TODO: eliminare gli attributi del body già presenti nella cosa --> aggiungere attributi dal body alla cosa.
+app.post('/things/:thingId/attributes', async (req, res) => {
+    const { thingId } = req.params;
+    const body = req.body;
+    try {
+        await thingService.updateAttributeOfThing(thingId,body?.attributes);
+        res.status(200).send(newMessage('success', 'thing updated with success!!'));
+    } catch (error) {
+        if (error?.name == "TypeDBClientError") res.status(400).send(error.message);
+        else
+            res.status(404).send(newMessage('error', error));
+    }
+})
+
+//TODO: eliminare gli attributi già presenti dal body nella cosa, aggiungere già presenti nel body e nuovi nella cosa.
+//! FIXME: da fixare
+app.put('/things/:thingId/attributes', async (req, res) => {
+    const { thingId } = req.params;
+    const body = req.body;
+    try {
+        await thingService.deleteAttributes(thingId);
+        await thingService.addToThing(thingId,body.attributes,body.features);
+        res.status(200).send(newMessage('success', 'thing updated with success!!'));
+    } catch (error) {
+        if (error?.name == "TypeDBClientError") res.status(400).send(error.message);
+        else
+            res.status(404).send(newMessage('error', error));
+    }
+})
+
+app.post('/things/:thingId/features', async (req, res) => {
+    const { thingId } = req.params;
+    const body = req.body;
+    try {
+        await thingService.updateFeaturesOfThing(thingId,body?.features);
+        res.status(200).send(newMessage('success', 'thing updated with success!!'));
+    } catch (error) {
+        if (error?.name == "TypeDBClientError") res.status(400).send(error.message);
+        else
+            res.status(404).send(newMessage('error', error));
+    }
+})
+
+/* app.post('/things/:thingId/features', async (req, res) => {
+    const { thingId } = req.params;
+    const body = req.body;
+    try {
+        await thingService.deleteFutures(thingId,body?.features);
+        await thingService.addToThing(thingId,body?.attributes,body?.features);
+        res.status(200).send(newMessage('success', 'thing updated with success!!'));
+    } catch (error) {
+        if (error?.name == "TypeDBClientError") res.status(400).send(error.message);
+        else
+            res.status(404).send(newMessage('error', error));
+    }
+}) */
+
+//* PATCH requests
 
 /**
  * params: {
@@ -120,101 +289,11 @@ app.patch('/things/:thingId/features', async (req, res) => {
     }
 })
 
-/**
- * return all things
- */
-app.get('/things', async (req, res) => {
-    res.send(await thingService.getThings());
-})
 
 
-/**
- * params:{
- *  thingId --> id of a thing that we want to create
- * }
- * body: {
- *  attributes:{} --> attributes associated to the thing
- *  features:{} --> features associated to the thing
- * }
- * 
- * create new thing if thingId isn't already exists
- */
-app.post('/things/:thingId', async (req, res) => {
-    const id = req.params.thingId;
-    const body = req.body;
-    try {
-        await thingService.createNewThing({ thingId: id, attributes: body.attributes, features: body.features });
-        res.status(200).send(newMessage('success', 'thing created with success!!'));
-    } catch (error) {
-        if (error.name == "TypeDBClientError") res.status(400).send(error.message);
-        else res.status(400).send(newMessage('error', error));
-    }
-})
 
-//TODO: eliminare gli attributi già presenti dal body nella cosa, aggiungere già presenti nel body e nuovi nella cosa.
-app.post('/things/:thingId/attributes', async (req, res) => {
-    const { thingId } = req.params;
-    const body = req.body;
-    try {
-        await thingService.deleteAttributes(thingId);
-        await thingService.addToThing(thingId,body.attributes,body.features);
-        res.status(200).send(newMessage('success', 'thing updated with success!!'));
-    } catch (error) {
-        if (error?.name == "TypeDBClientError") res.status(400).send(error.message);
-        else
-            res.status(404).send(newMessage('error', error));
-    }
-})
 
-/**
- * params: {
- *  thingId --> id of a thing that we want to get,
- * }
- * return thing with id = thingId
- */
-app.get('/things/:thingId', async (req, res) => {
-    const { thingId } = req.params;
-    try {
-        const thing = await thingService.getAThing(thingId);
-        res.send(thing);
-    } catch (error) {
-        res.status(404).send(error);
-    }
-})
-
-/**
- * params: {
- *  thingId --> id of a thing that we want to get,
- * }
- * return features of thing with id = thingId
- */
-app.get('/things/:thingId/features', async (req, res) => {
-    const { thingId } = req.params;
-    /* const features = await getRelationsOfAThing(thingId); */
-    try {
-        let thing = await thingService.getAThing(thingId);
-        res.send(thing.features);
-    } catch (error) {
-        res.status(404).send(error);
-    }
-})
-
-/**
- * params: {
- *  thingId --> id of a thing that we want to get,
- * }
- * return attributes of thing with id = thingId
- */
-app.get('/things/:thingId/attributes', async (req, res) => {
-    const { thingId } = req.params;
-    /* const attributes = await getAttributesOfAThing(thingId); */
-    try {
-        let thing = await thingService.getAThing(thingId);
-        res.send(thing.attributes);
-    } catch (error) {
-        res.status(404).send(error);
-    }
-})
+//* DELETE requests
 
 app.delete('/things/:thingId/attributes', async (req, res) => {
     const { thingId } = req.params;
@@ -227,7 +306,7 @@ app.delete('/things/:thingId/attributes', async (req, res) => {
             res.status(404).send(newMessage('error', error));
     }
 })
-
+//TODO: cancellare anche la feature specifica
 app.delete('/things/:thingId/features', async (req, res) => {
     const { thingId } = req.params;
     try {

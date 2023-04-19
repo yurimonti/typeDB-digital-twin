@@ -11,6 +11,7 @@ const database = "API_ASSET#TYPEDB"; //inserire nome database
 
 
 async function deleteThing(thingId) {
+    console.log('entrato elimina tutto');
     const client = await clientFunction.openClient();
     const session = await clientFunction.openSession(client);
     const delTransaction = await clientFunction.openTransaction(session, true);
@@ -163,7 +164,9 @@ async function deleteMultipleRelations(reqQuery) {
 }
 
 async function deleteAttributes(thingId,attributes) {
+    console.log('entrato elimina attributi');
     const query = queryUtils.deleteAttributeQuery(thingId,attributes);
+    console.log(query);
     const client = clientFunction.openClient();
     const session = await clientFunction.openSession(client);
     const writeTransaction = await clientFunction.openTransaction(session, true);
@@ -179,8 +182,9 @@ async function deleteAttributes(thingId,attributes) {
     }
 }
 
-async function deleteFeatures(thingId) {
-    const query = queryUtils.deleteFeaturesQuery(thingId);
+async function deleteFeatures(thingId,features) {
+    console.log('entrato elimina feature');
+    const query = queryUtils.deleteFeaturesQuery(thingId,features);
     const client = clientFunction.openClient();
     const session = await clientFunction.openSession(client);
     const writeTransaction = await clientFunction.openTransaction(session, true);
