@@ -1,3 +1,4 @@
+
 require("express");
 
 
@@ -18,7 +19,7 @@ async function createJsonAllThing(transaction, thing) {
         const attributes = attributesCollection
             .map((a) => a.asAttribute())
             .map((a) => {
-                return {[a.type._label._name]: a.value};
+                return { [a.type._label._name]: a.value };
             });
 
         const answerStream = transaction.query.match(
@@ -98,7 +99,27 @@ async function createJsonOnlyIDRelation(transaction, relation) {
     }
 }
 
+
+async function extractAttributesAndRoles(relation, transaction) {
+    const attributesCollection = await relation
+        .asRemote(transaction)
+        .getHas(true)
+        .collect();
+    const attributes = attributesCollection
+        .map((a) => a.asAttribute())
+        .map((a) => {
+            return { [a.type._label._name]: a.value };
+        });
+
+    const playersByRoleType = await relation
+        .asRemote(transaction)
+        .getPlayersByRoleType();
+    const players = [];
+    return { attributes, playersByRoleType, players };
+}
+
 /**
+
  * Creates a json object of a thing with only its id.
  *
  * @param transaction typedb transaction
@@ -139,7 +160,7 @@ async function createJsonFromThingAttributesOnly(transaction, thing) {
             .asRemote(transaction)
             .getHas(true)
             .collect();
-        const attributes = attributesCollection
+        const name = attributesCollection
             .map((a) => a.asAttribute())
             .map((a) => {
                 return {[a.type._label._name]: a.value};
@@ -151,6 +172,7 @@ async function createJsonFromThingAttributesOnly(transaction, thing) {
 }
 
 /**
+
  * Creates a json object representing s set of relations.
  *
  * @param {*} transaction typedb transaction for asRemote method
@@ -161,6 +183,7 @@ async function createJsonAllRelation(transaction, relation) {
     try {
         const {attributes, playersByRoleType, players} = await extractAttributesAndRoles(relation, transaction);
 
+
         // with all attributes for each player
         for await (const [key, value] of playersByRoleType) {
             for (const element of value) {
@@ -169,18 +192,61 @@ async function createJsonAllRelation(transaction, relation) {
                         transaction,
                         element.asEntity()
                     );
+
                     players.push({[key._label._name]: thing});
+
                 } catch (error) {
                     console.log(error);
                 }
             }
         }
         return {
-            [relation.type._label._name]: {attributes: attributes, roles: players},
+            [relation.type._label._name]: { attributes: attributes, roles: players },
         };
     } catch (error) {
         console.log(error);
     }
+}
+
+function getAttributesFromAConceptGroup(aConceptGroup) {
+    let attributes = {};
+    aConceptGroup.forEach(c => {
+        const label = attributes[c.attribute.label];
+        if (label === undefined) attributes = {
+            ...attributes,
+            [c.attribute.label]: c.attribute.value
+        }
+    });
+    return attributes;
+}
+
+function getRelationsFromAConceptGroup(aConceptGroup,thingId) {
+    let features = {};
+    aConceptGroup.forEach(c => {
+        if (features[c.relation.label] === undefined) features = {
+            ...features,
+            [c.relation.label]: {
+                [c.relation.id]: {
+                    [c.roles.from]: thingId,
+                    [c.roles.to]: c.related
+                }
+            }
+        }
+        else {
+            const label = features[c.relation.label];
+            if (label[c.relation.id] === undefined) {
+                features[c.relation.label] = {
+                    ...label,
+                    [c.relation.id]: {
+                        [c.roles.from]: thingId,
+                        [c.roles.to]: c.related
+                    }
+                };
+                //console.log(features);
+            }
+        }
+    });
+    return features;
 }
 
 module.exports = {

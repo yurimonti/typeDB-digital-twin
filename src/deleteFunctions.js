@@ -1,3 +1,60 @@
+//yuri
+const { TypeDB, SessionType, TransactionType } = require("typedb-client");
+const { isADate, getRelationsQuery, getMatchQueryForAThing } = require('./queryUtils');
+const clientFunction = require('./clientFunction');
+const queryUtils = require('./queryUtils');
+// const {
+//     createJsonAllThing,
+//     createJsonAllRelation,
+// } = require("./jsonEntityConstructor.js");
+
+const database = "API_ASSET#TYPEDB"; //inserire nome database
+
+
+async function deleteThing(thingId) {
+    console.log('entrato elimina tutto');
+    const client = await clientFunction.openClient();
+    const session = await clientFunction.openSession(client);
+    const delTransaction = await clientFunction.openTransaction(session, true);
+    try {
+        await delTransaction.query.delete(queryUtils.getDeleteThingQuery(thingId));
+    } catch (error) {
+        await delTransaction.rollback();
+        console.log(error);
+    } finally {
+        await delTransaction.commit();
+        await clientFunction.closeSession(session);
+        await clientFunction.closeClient(client);
+    }
+}
+
+async function deleteRelation(relationId) {
+    const client = TypeDB.coreClient("localhost:1729");
+    const session = await client.session(database, SessionType.DATA);
+    const delTransaction = await session.transaction(TransactionType.WRITE);
+    let answer = await delTransaction.query.delete("match $p isa relation, has relationId '" + relationId + "'; delete $p isa relation;");
+    await delTransaction.commit();
+    await session.close();
+    await client.close();
+    return answer;
+}
+
+async function deleteThingAttribute(thingId, attributeName) {
+    const client = TypeDB.coreClient("localhost:1729");
+    const session = await client.session(database, SessionType.DATA);
+    const delTransaction = await session.transaction(TransactionType.WRITE);
+    let answer = await delTransaction.query.delete("match $p isa entity, has thingId '" + thingId + "'; $a isa " + attributeName + "; $p has $a; delete $a isa attribute;");
+    await delTransaction.commit();
+    await session.close();
+    await client.close();
+    return answer;
+}
+
+async function deleteMultipleThings(reqQuery) {
+    const client = TypeDB.coreClient("localhost:1729");
+    const session = await client.session(database, SessionType.DATA);
+    const delTransaction = await session.transaction(TransactionType.WRITE);
+//greta
 const connection = require("./clientConfig.js");
 
 
@@ -59,6 +116,7 @@ async function deleteSingleData(query) {
 async function deleteMultipleThings(reqQuery) {
     const conn = await connection.openConnection(false, true);
 
+// main
     let answer = undefined;
     if (JSON.stringify(reqQuery) === "{}") {
         throw 'Bad request, insert one or more parameters.';
@@ -72,14 +130,20 @@ async function deleteMultipleThings(reqQuery) {
                 if (key === 'thingId') {
                     for (let i = 0; i < value.length; i++) {
                         let attr = value[i];
-                        answer = await conn.transactionRef.query.delete("match $p isa entity, has " + key + "'" + attr + "'; delete $p isa entity;");
+//yuri
+                        answer = await delTransaction.query.delete("match $p isa entity, has " + key + "'" + attr + "'; delete $p isa entity;");
+//greta
+                       // answer = await conn.transactionRef.query.delete("match $p isa entity, has " + key + "'" + attr + "'; delete $p isa entity;");
                     }
                 } else {
                     throw 'Bad request, one or more parameters not valid.';
                 }
             } else {
                 if (key === 'thingId') {
-                    answer = await conn.transactionRef.query.delete("match $p isa entity, has " + key + "'" + value + "'; delete $p isa entity;");
+//yuri 
+                    answer = await delTransaction.query.delete("match $p isa entity, has " + key + "'" + value + "'; delete $p isa entity;");
+//gre
+                  //  answer = await conn.transactionRef.query.delete("match $p isa entity, has " + key + "'" + value + "'; delete $p isa entity;");
                 } else {
                     throw 'Bad request, one or more parameters not valid.';
                 }
@@ -87,6 +151,18 @@ async function deleteMultipleThings(reqQuery) {
         }
     }
 
+// yuri
+    await delTransaction.commit();
+    await session.close();
+    await client.close();
+    return answer;
+}
+
+async function deleteMultipleThingsAttributes(reqQuery) {
+    const client = TypeDB.coreClient("localhost:1729");
+    const session = await client.session(database, SessionType.DATA);
+    const delTransaction = await session.transaction(TransactionType.WRITE);
+//gre
     await connection.closeConnection(conn);
     return answer;
 }
@@ -100,6 +176,7 @@ async function deleteMultipleThings(reqQuery) {
 async function deleteMultipleThingsAttributes(reqQuery) {
     const conn = await connection.openConnection(false, true);
 
+//main
     let answer = undefined;
     if (JSON.stringify(reqQuery) === "{}") {
         throw 'Bad request, insert one or more parameters.';
@@ -113,20 +190,41 @@ async function deleteMultipleThingsAttributes(reqQuery) {
                 if (key === 'thingId') {
                     for (let i = 0; i < value.length; i++) {
                         let attr = value[i];
-                        answer = await conn.transactionRef.query.delete("match $p isa entity, has " + key + "'" + attr + "', has attribute $a; not {$a isa thingId;}; delete $a isa attribute;");
+//yuri
+                        answer = await delTransaction.query.delete("match $p isa entity, has " + key + "'" + attr + "', has attribute $a; delete $a isa attribute;");
+//gre
+                   //     answer = await conn.transactionRef.query.delete("match $p isa entity, has " + key + "'" + attr + "', has attribute $a; not {$a isa thingId;}; delete $a isa attribute;");
+
                     }
                 } else {
                     throw 'Bad request, one or more parameters not valid.';
                 }
             } else {
                 if (key === 'thingId') {
-                    answer = await conn.transactionRef.query.delete("match $p isa entity, has " + key + "'" + value + "', has attribute $a; not {$a isa thingId;}; delete $a isa attribute;");
+// yuri
+                    answer = await delTransaction.query.delete("match $p isa entity, has " + key + "'" + value + "', has attribute $a; delete $a isa attribute;");
+//gre
+                  //  answer = await conn.transactionRef.query.delete("match $p isa entity, has " + key + "'" + value + "', has attribute $a; not {$a isa thingId;}; delete $a isa attribute;");
+
                 } else {
                     throw 'Bad request, one or more parameters not valid.';
                 }
             }
         }
     }
+
+
+    await delTransaction.commit();
+    await session.close();
+    await client.close();
+    return answer;
+}
+
+
+async function deleteMultipleRelations(reqQuery) {
+    const client = TypeDB.coreClient("localhost:1729");
+    const session = await client.session(database, SessionType.DATA);
+    const delTransaction = await session.transaction(TransactionType.WRITE);
 
     await connection.closeConnection(conn);
     return answer;
@@ -141,6 +239,7 @@ async function deleteMultipleThingsAttributes(reqQuery) {
 async function deleteMultipleRelations(reqQuery) {
     const conn = await connection.openConnection(false, true);
 
+
     let answer = undefined;
     if (JSON.stringify(reqQuery) === "{}") {
         throw 'Bad request, insert one or more parameters.';
@@ -154,23 +253,92 @@ async function deleteMultipleRelations(reqQuery) {
                 if (key === 'relationId') {
                     for (let i = 0; i < value.length; i++) {
                         let attr = value[i];
-                        answer = await conn.transactionRef.query.delete("match $p isa relation, has " + key + "'" + attr + "'; delete $p isa relation;");
+// yuri
+                        answer = await delTransaction.query.delete("match $p isa relation, has " + key + "'" + attr + "'; delete $p isa relation;");
+//gre
+                     //   answer = await conn.transactionRef.query.delete("match $p isa relation, has " + key + "'" + attr + "'; delete $p isa relation;");
+
                     }
                 } else {
                     throw 'Bad request, one or more parameters not valid.';
                 }
             } else {
                 if (key === 'relationId') {
-                    answer = await conn.transactionRef.query.delete("match $p isa relation, has " + key + "'" + value + "'; delete $p isa relation;");
+//yuri
+                    answer = await delTransaction.query.delete("match $p isa relation, has " + key + "'" + value + "'; delete $p isa relation;");
+//gre
+                  //  answer = await conn.transactionRef.query.delete("match $p isa relation, has " + key + "'" + value + "'; delete $p isa relation;");
+
                 } else {
                     throw 'Bad request, one or more parameters not valid.';
                 }
             }
         }
     }
+//yu
+    await delTransaction.commit();
+    await session.close();
+    await client.close();
+    return answer;
+}
+
+async function deleteAttributes(thingId,attributes) {
+    console.log('entrato elimina attributi');
+    const query = queryUtils.deleteAttributeQuery(thingId,attributes);
+    console.log(query);
+    const client = clientFunction.openClient();
+    const session = await clientFunction.openSession(client);
+    const writeTransaction = await clientFunction.openTransaction(session, true);
+    try {
+        await writeTransaction.query.delete(query);
+    } catch (error) {
+        await writeTransaction.rollback();
+        console.log(error);
+    } finally {
+        await writeTransaction.commit();
+        await clientFunction.closeSession(session);
+        await clientFunction.closeClient(client);
+    }
+}
+
+async function deleteFeatures(thingId,features) {
+    console.log('entrato elimina feature');
+    const query = queryUtils.deleteFeaturesQuery(thingId,features);
+    const client = clientFunction.openClient();
+    const session = await clientFunction.openSession(client);
+    const writeTransaction = await clientFunction.openTransaction(session, true);
+    try {
+        await writeTransaction.query.delete(query);
+    } catch (error) {
+        await writeTransaction.rollback();
+        console.log(error);
+    } finally {
+        await writeTransaction.commit();
+        await clientFunction.closeSession(session);
+        await clientFunction.closeClient(client);
+    }
+}
+
+async function deleteAnAttribute(thingId,attribute){
+    const query = queryUtils.deleteFeaturesQuery(thingId);
+    const client = clientFunction.openClient();
+    const session = await clientFunction.openSession(client);
+    const writeTransaction = await clientFunction.openTransaction(session, true);
+    try {
+        await writeTransaction.query.delete(query);
+    } catch (error) {
+        await writeTransaction.rollback();
+        console.log(error);
+    } finally {
+        await writeTransaction.commit();
+        await clientFunction.closeSession(session);
+        await clientFunction.closeClient(client);
+    }
+//gre
 
     await connection.closeConnection(conn);
     return answer;
+//
 }
 
 
@@ -181,4 +349,8 @@ module.exports = {
     deleteMultipleThings,
     deleteMultipleThingsAttributes,
     deleteMultipleRelations,
+
+    deleteAttributes,
+    deleteFeatures
+
 };
