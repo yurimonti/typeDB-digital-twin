@@ -79,6 +79,7 @@ const updateThing = async (thingId, attributes, features) => {
     if (attributes?.thingId) throw "Is not possible to modify an id of a Thing!"
     if (attributes?.category) throw "Is not possible to modify a category of a Thing";
     if (attributes?.typology) throw "Is not possible to modify a typology of a Thing";
+    if (attributes?.thingId) throw "Is not possible to modify an id of a Thing";
     await thingRepository.updateThing(thingId, attributes, features,false);
 }
 
@@ -90,6 +91,7 @@ const addToThing = async (thingId,attributes,features) =>{
         if (attributes?.thingId) throw "Is not possible to modify an id of a Thing!"
     if (attributes?.category) throw "Is not possible to modify a category of a Thing";
     if (attributes?.typology) throw "Is not possible to modify a typology of a Thing";
+    if (attributes?.thingId) throw "Is not possible to modify an id of a Thing";
     //controllare
     await thingRepository.updateThing(thingId,attributes,features,true);
 }

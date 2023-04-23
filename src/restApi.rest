@@ -1,8 +1,77 @@
 GET http://localhost:3030/ HTTP/1.1
 content-type: application/json
 
+###
+
+GET http://localhost:3030/prova HTTP/1.1
+content-type: application/json
+
+###
+
+GET http://localhost:3030/prova/env_3 HTTP/1.1
+content-type: application/json
+
+###
+
+POST http://localhost:3030/prova HTTP/1.1
+content-type: application/json
+
+{
+    "thingId": "env_3",
+    "attributes": {
+      "fw_version": "1.0c",
+      "label": "Environmental 3",
+      "date": "2019-05-15T15:00:00.000Z",
+      "hw_version": "1.00.00"
+    },
+    "features": {
+      "sensor_location": {
+        "sens_location_env4": {
+          "located": "env_3",
+          "locator": "lb2"
+        },
+        "sens_location_env3": {
+          "located": "env_3",
+          "locator": "lb1"
+        }
+      }
+    }
+  }
+
+###
+
+POST http://localhost:3030/prova/camerino HTTP/1.1
+content-type: application/json
+
 {
     "thingId": "thingId",
+    "attributes": {
+      "label":"Camerino"
+    },
+    "features": {
+      "location": {
+        "department_location": {
+          "locator": "camerino",
+          "located": "polo_ludovici_b"
+        },
+        "department_location2": {
+          "locator": "camerino",
+          "located": "polo_ludovici_a"
+        }
+      }
+    }
+  }
+
+###
+
+POST http://localhost:3030/prova/camerino/attributes HTTP/1.1
+content-type: application/json
+
+{
+    "thingId": "thingId",
+    "attributes": {
+      "label":"Camerino"
+    },
     "features": {
       "sensor_location": {
         "sens_location_env2": {
@@ -22,6 +91,133 @@ content-type: application/json
         "department_location2": {
           "locator": "camerino",
           "located": "polo_ludovici_b"
+        }
+      }
+    }
+  }
+
+###
+
+POST http://localhost:3030/prova/camerino/features HTTP/1.1
+content-type: application/json
+
+{
+    "thingId": "thingId",
+    "attributes": {
+      "label":"Camerino"
+    },
+    "features": {
+      "location": {
+        "department_location2": {
+          "locator": "camerino",
+          "located": "polo_ludovici_a"
+        },
+        "department_location": {
+          "locator": "camerino",
+          "located": "polo_ludovici_b"
+        }
+      }
+    }
+  }
+
+###
+
+DELETE http://localhost:3030/prova/camerino HTTP/1.1
+content-type: application/json
+
+{
+    "features": {
+      "location": {
+        "department_location2": {
+          "locator": "camerino",
+          "located": "polo_ludovici_a"
+        },
+        "department_location": {
+          "locator": "camerino",
+          "located": "polo_ludovici_b"
+        }
+      }
+    }
+  }
+
+###
+
+DELETE http://localhost:3030/prova/camerino/attributes HTTP/1.1
+content-type: application/json
+
+{
+    "attributes": {
+      "label":"Camerino"
+    }
+  }
+
+###
+
+DELETE http://localhost:3030/prova/camerino/attributes/label HTTP/1.1
+content-type: application/json
+
+###
+
+DELETE http://localhost:3030/prova/camerino/features HTTP/1.1
+content-type: application/json
+
+{
+    "features": {
+      "location": {
+        "department_location2": {
+          "locator": "camerino",
+          "located": "polo_ludovici_a"
+        },
+        "department_location": {
+          "locator": "camerino",
+          "located": "polo_ludovici_b"
+        }
+      }
+    }
+  }
+
+###
+
+DELETE http://localhost:3030/prova/camerino/features/location HTTP/1.1
+content-type: application/json
+
+
+###
+
+PUT http://localhost:3030/prova/env_3 HTTP/1.1
+content-type: application/json
+
+{
+    "attributes": {
+      "label": "Environmental 3",
+      "date": "2019-05-15T15:00:00.000Z"
+    },
+    "features": {
+      "sensor_location": {
+        "sens_location_env3": {
+          "located": "env_3",
+          "locator": "lb1"
+        }
+      }
+    }
+  }
+
+###
+
+PUT http://localhost:3030/prova/env_3/features HTTP/1.1
+content-type: application/json
+
+{
+    "thingId": "env_3",
+    "attributes": {
+      "label": "Environmental 3",
+      "date": "2019-05-15T15:00:00.000Z"
+    },
+    "features": {
+      "sensor_location": {
+        "sens_location_env3": {
+          "located": "env_3",
+          "locator": "lb1"
         }
       }
     }
@@ -68,7 +264,7 @@ GET http://localhost:3030/things HTTP/1.1
 
 ###
 
-GET http://localhost:3030/things/env_1 HTTP/1.1
+GET http://localhost:3030/things/camerino HTTP/1.1
 
 ###
 

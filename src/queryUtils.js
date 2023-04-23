@@ -1,4 +1,4 @@
-const {getThingKey,matchThing} = require('./service/queryConstructor');
+const {getThingKey,thingStringQuery} = require('./service/queryConstructor');
 
 const isADate = (value) => {
     if (value.length === 24 && value.charAt(10) === 'T' && value.charAt(23) === 'Z') return true;
@@ -103,7 +103,7 @@ const deleteAttributeQuery = (thingId, attributes) => {
 const deleteFeaturesQuery = (thingId,features) => {
     const thing = "$" + thingId;
     let toMatch = ["match"];
-    toMatch.push(" "+matchThing(thingId));
+    toMatch.push(" "+thingStringQuery(thingId));
     let toDelete = ["delete"];
     if(features === null){
         toMatch.push(" $entity isa entity; $rel(" + thing + ",$entity) isa relation;");
@@ -111,7 +111,7 @@ const deleteFeaturesQuery = (thingId,features) => {
     }else {
         const featuresDestructured = getRelationsQuery(features);
         featuresDestructured.length > 0 && featuresDestructured.forEach(obj => {
-            let toPushBefore = " " + matchThing(obj.id2);
+            let toPushBefore = " " + thingStringQuery(obj.id2);
             !toMatch.includes(toPushBefore) && toMatch.push(toPushBefore);
             toPushBefore = " $" + obj.relId + "(" + obj.role1 + ":"+ getThingKey(thingId) + "," + obj.role2 + ":$" + obj.id2 + ") isa " + obj.rel + "; $" + obj.relId + " has relationId '" + obj.relId + "';";
             !toMatch.includes(toPushBefore) && toMatch.push(toPushBefore);
