@@ -1,0 +1,144 @@
+define
+  
+ thingId sub attribute, value string;
+ ##personId sub attribute, value string;
+ relationId sub attribute, value string;
+ label sub attribute, value string;
+ category sub attribute, value string, regex "^(sensor|space|place|equipment|logic|actuator|person|digital-twin)$";
+ typology sub attribute, value string, regex "^(access_control|pir|environmental|gateway|energy_cabin|switch|use_case|class_room|study_room|department|city|department_director)$";
+
+ fw_version sub attribute, value string;
+ hw_version sub attribute, value string;
+ ports_number sub attribute, value long;
+ date sub attribute, value datetime;
+ capacity sub attribute, value string;
+
+ 
+  location sub relation, relates located, relates locator, owns relationId @key;
+  sensor_location sub relation, relates located, relates locator, owns relationId @key;
+  gateway_location sub relation, relates located, relates locator, owns relationId @key;
+  room sub relation, relates located, relates locator, owns relationId @key;
+  power sub relation, relates powered, relates powering, owns relationId @key;
+  network_link sub relation, relates linked, relates linker, owns relationId @key;
+  use_case sub relation, relates represented, relates represents, owns relationId @key;
+  reference sub relation, relates referenced, relates referent, owns relationId @key;
+  equipmentRel sub relation, relates equipped, relates equipping, owns relationId @key;
+
+  digital-twin sub entity, owns thingId @key, owns label, owns category, owns typology; 
+  person sub entity, plays reference:referent, owns thingId @key, owns label, owns category, owns typology; 
+ ## person sub entity, plays reference:referent, owns personId, owns label, owns category, owns tipology; 
+
+  logic sub digital-twin, plays use_case:represents;
+  sensor sub digital-twin, plays sensor_location:located, owns fw_version, owns hw_version, owns date;
+  equipment sub digital-twin, plays equipmentRel:equipping, plays power:powering, plays network_link:linker, owns ports_number, owns capacity, owns date;
+  actuator sub digital-twin, plays gateway_location:located, plays power:powered, plays network_link:linked, owns hw_version, owns date;
+  space sub digital-twin, plays reference:referenced, plays sensor_location:locator, plays gateway_location:locator, plays room:locator, plays room:located, plays location:located, plays equipmentRel:equipped, plays use_case:represented, owns capacity;
+  place sub digital-twin, plays location:locator;
+
+### rules
+#regole per inserire a runtime la categoria dato il tipo dell'entitÃƒ 
+rule actuator:
+when {
+    $p isa actuator;
+} then {
+    $p has category 'actuator';
+};
+
+rule equipment:
+when {
+    $p isa equipment;
+} then {
+    $p has category 'equipment';
+};
+
+rule logic:
+when {
+    $p isa logic;
+} then {
+    $p has category 'logic';
+};
+
+rule place:
+when {
+    $p isa place;
+} then {
+    $p has category 'place';
+};
+
+rule sensor:
+when {
+    $p isa sensor;
+} then {
+    $p has category 'sensor';
+};
+
+rule space:
+when {
+    $p isa space;
+} then {
+    $p has category 'space';
+};
+
+rule person:
+when {
+    $p isa person;
+} then {
+    $p has category 'person';
+};
+
+#regole per inserire a runtime la categoria data la tipologia
+rule actuator_category:
+when {
+    $p isa entity;
+    $p has typology 'gateway';
+} then {
+    $p has category 'actuator';
+};
+
+rule equipment_category:
+when {
+    $p isa entity;
+    {$p has typology 'energy_cabin';} or {$p has typology 'switch';};
+} then {
+    $p has category 'equipment';
+};
+
+rule logic_category:
+when {
+    $p isa entity;
+    $p has typology 'use_case';
+} then {
+    $p has category 'logic';
+};
+
+rule place_category:
+when {
+    $p isa entity;
+    $p has typology 'city';
+} then {
+    $p has category 'place';
+};
+
+rule sensor_category:
+when {
+    $p isa entity;
+    {$p has typology 'environmental';} or {$p has typology 'pir';} or {$p has typology 'access_control';};
+} then {
+    $p has category 'sensor';
+};
+
+rule space_category:
+when {
+    $p isa entity;
+    {$p has typology 'class_room';} or {$p has typology 'department';} or {$p has typology 'study_room';};
+} then {
+    $p has category 'space';
+};
+
+rule person_category:
+when {
+    $p isa entity;
+    $p has typology 'department_director';
+} then {
+    $p has category 'person';
+};

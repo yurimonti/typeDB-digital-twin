@@ -1,0 +1,240 @@
+insert
+### insert Sensors
+$p isa sensor;
+$p has thingId 'pir_1';
+$p has label 'PIR 1';
+$p has category 'sensor';
+$p has typology 'pir';
+$p has fw_version '1.0b';
+$p has hw_version '1.00.00';
+$p has date 2019-05-15T15:00:00;
+
+$e isa sensor;
+$e has thingId 'env_1';
+$e has label 'Environmental 1';
+$e has category 'sensor';
+$e has typology 'environmental';
+$e has fw_version '1.0c';
+$e has hw_version '1.00.00';
+$e has date 2019-05-15T15:00:00;
+
+$r isa sensor;
+$r has thingId 'pir_2';
+$r has label 'PIR 2';
+$r has category 'sensor';
+$r has typology 'pir';
+$r has fw_version '1.0c';
+$r has hw_version '2.00.00';
+$r has date 2019-05-15T16:30:00;
+
+$a isa sensor;
+$a has thingId 'ctrl_access';
+$a has label 'Access Control';$p has category 'sensor';
+$a has category 'sensor';
+$a has typology 'access_control';
+$a has fw_version '1.0refc';
+$a has date 2019-05-16T09:30:00;
+
+###insert space
+$q isa space;
+$q has thingId 'lb1';
+$q has label 'LB1';
+$q has category 'space';
+$q has typology 'class_room';
+$q has capacity '30';
+
+$l isa space;
+$l has thingId 'lb2';
+$l has label 'LB2';
+$l has category 'space';
+$l has typology 'class_room';
+$l has capacity '25';
+   
+$t isa space;
+$t has thingId 'polo_ludovici_a';
+$t has label 'Polo A Ludovici';
+$t has category 'space';
+$t has typology 'department';
+
+$y isa space;
+$y has thingId 'polo_ludovici_b';
+$y has label 'Polo B Ludovici';
+$y has category 'space';
+$y has typology 'department';
+
+$s isa space;
+$s has thingId 'phd_room';
+$s has label 'PHD room';
+$s has category 'space';
+$s has typology 'study_room';
+$s has capacity '10';
+
+###insert place               
+$c isa place;
+$c has thingId 'camerino';
+$c has label 'Camerino';
+$c has category 'place';
+$c has typology 'city';
+
+###insert persons
+$m isa person;
+$m has thingId 'mario_rossi';
+##$m has personId 'mario_rossi';
+$m has label 'Mario Rossi';
+$m has category 'person';
+$m has typology 'department_director';
+
+###insert actuators
+$g isa actuator;
+$g has thingId 'gw1';
+$g has label 'IoT Gateway';
+$g has category 'actuator';
+$g has typology 'gateway';
+$g has hw_version '3.0';
+$g has date 2019-05-15T14:00:00;
+
+###insert actuators
+$u isa equipment;
+$u has thingId 'power1';
+$u has label 'Line Power';
+$u has category 'equipment';
+$u has typology 'energy_cabin';
+$u has capacity '6Kw';
+$u has date 2019-02-21T14:00:00;
+
+###insert equipments
+$n isa equipment;
+$n has thingId 'net1';
+$n has label 'Network line';
+$n has category 'equipment';
+$n has typology 'switch';
+$n has ports_number 24;
+$n has capacity '20 Gbps';
+
+$o isa equipment;
+$o has thingId 'net2';
+$o has label 'Network line';
+$o has category 'equipment';
+$o has typology 'switch';
+$o has ports_number 24;
+
+###insert logic
+$w isa logic;
+$w has thingId 'uc_wellness';
+$w has label 'Wellness Room';
+$w has category 'logic';
+$w has typology 'use_case';
+
+$f isa logic;
+$f has thingId 'uc_temp';
+$f has label 'Temperature Room';
+$f has category 'logic';
+$f has typology 'use_case';
+
+$h isa logic;
+$h has thingId 'uc_access';
+$h has label 'Access Control';
+$h has category 'logic';
+$h has typology 'use_case';
+
+###insert relations
+match
+ $p isa space, has thingId="polo_ludovici_b";
+ $l isa space, has thingId="lb1";
+insert $new-room (locator: $p, located: $l) isa room; $new-room has relationId "dep_lb1";
+
+match
+ $p isa space, has thingId="polo_ludovici_b";
+ $l isa space, has thingId="lb2";
+insert $new-room (locator: $p, located: $l) isa room; $new-room has relationId "dep_lb2";
+
+match
+ $p isa space, has thingId="polo_ludovici_b";
+ $l isa space, has thingId="phd_room";
+insert $new-room (locator: $p, located: $l) isa room; $new-room has relationId "dep_pdf";
+
+match
+ $p isa sensor, has thingId="pir_1";
+ $l isa space, has thingId="lb1";
+insert $new-location (locator: $l, located: $p) isa sensor_location; $new-location has relationId "sens_location_pir1";
+
+match
+ $p isa sensor, has thingId="env_1";
+ $l isa space, has thingId="lb1";
+insert $new-location (locator: $l, located: $p) isa sensor_location; $new-location has relationId "sens_location_env1";
+
+match
+ $p isa sensor, has thingId="pir_2";
+ $l isa space, has thingId="lb2";
+insert $new-location (locator: $l, located: $p) isa sensor_location; $new-location has relationId "sens_location_pir2";
+
+match
+ $p isa sensor, has thingId="ctrl_access";
+ $l isa space, has thingId="phd_room";
+insert $new-location (locator: $l, located: $p) isa sensor_location; $new-location has relationId "sens_location_access";
+
+
+match
+ $p isa actuator, has thingId="gw1";
+ $l isa space, has thingId="lb1";
+insert $new-location (locator: $l, located: $p) isa gateway_location; $new-location has relationId "sens_location_gateway";
+
+match
+ $p isa actuator, has thingId="gw1";
+ $l isa equipment, has thingId="power1";
+insert $new-power (powering: $l, powered: $p) isa power; $new-power has relationId "powered";
+
+match
+ $p isa actuator, has thingId="gw1";
+ $l isa equipment, has thingId="net1";
+insert $new-network-link (linker: $l, linked: $p) isa network_link; $new-network-link has relationId "network-link";
+
+match
+ $p isa logic, has thingId="uc_wellness";
+ $l isa space, has thingId="lb1";
+insert $new-use_case (represented: $l, represents: $p) isa use_case; $new-use_case has relationId "enabled_uc1";
+
+match
+ $p isa logic, has thingId="uc_temp";
+ $l isa space, has thingId="lb1";
+insert $new-use_case (represented: $l, represents: $p) isa use_case; $new-use_case has relationId "enabled_uc2";
+
+match
+ $p isa logic, has thingId="uc_access";
+ $l isa space, has thingId="phd_room";
+insert $new-use_case (represented: $l, represents: $p) isa use_case; $new-use_case has relationId "enabled_uc3";
+
+match
+ $p isa space, has thingId="polo_ludovici_b";
+ $l isa equipment, has thingId="net1";
+insert $new-equipmentRel (equipping: $l, equipped: $p) isa equipmentRel; $new-equipmentRel has relationId "equipment_net1";
+
+match
+ $p isa space, has thingId="polo_ludovici_b";
+ $l isa equipment, has thingId="net2";
+insert $new-equipmentRel (equipping: $l, equipped: $p) isa equipmentRel; $new-equipmentRel has relationId "equipment_net2";
+
+match
+ $p isa space, has thingId="polo_ludovici_b";
+ $l isa equipment, has thingId="power1";
+insert $new-equipmentRel (equipping: $l, equipped: $p) isa equipmentRel; $new-equipmentRel has relationId "equipment_power";
+
+match
+ $p isa place, has thingId="camerino";
+ $l isa space, has thingId="polo_ludovici_b";
+insert $new-location (located: $l, locator: $p) isa location; $new-location has relationId "department_location";
+
+match
+ $p isa place, has thingId="camerino";
+ $l isa space, has thingId="polo_ludovici_a";
+insert $new-location (located: $l, locator: $p) isa location; $new-location has relationId "department_location2";
+
+match
+ $p isa space, has thingId="polo_ludovici_b";
+ $l isa person, has thingId="mario_rossi";
+insert $new-reference (referent: $l, referenced: $p) isa reference; $new-reference has relationId "department_ref";
+
+match
+ $p isa space, has thingId="polo_ludovici_a";
+ $l isa person, has thingId="mario_rossi";
+insert $new-reference (referent: $l, referenced: $p) isa reference; $new-reference has relationId "department_ref2";
