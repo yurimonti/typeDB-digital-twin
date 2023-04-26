@@ -1,4 +1,4 @@
-const { TypeDB, SessionType,TransactionType } = require("typedb-client");
+const { TypeDB, SessionType,TransactionType,TypeDBOptions } = require("typedb-client");
 
 const databaseName = "API_ASSET#TYPEDB"; //inserire nome database
 const clientIP = "localhost:1729";   //inserire IP client
@@ -26,7 +26,8 @@ const closeSession = async (session) => {
 
 const openTransaction = async (session,isWrite)=>{
     const type = isWrite ? TransactionType.WRITE : TransactionType.READ;
-    const transaction = await session.transaction(type);
+    const options = TypeDBOptions.core({infer:true});
+    const transaction = isWrite ? session.transaction(type) : await session.transaction(type,options);
     return transaction;
 }
 
