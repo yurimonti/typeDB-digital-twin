@@ -372,19 +372,8 @@ app.delete('/things/:thingId/features/:featuresPath(*)', async (req, res) => {
         return res.status(404).send(newMessage('error', error));
     }
 
-    let toReturn = thing.features;
-    let notFound;
-    if (!toReturn) return res.status(404).send("features not found for thing " + thingId);
-    for (const key of pathToResult) {
-        toReturn = toReturn[key];
-        if (!toReturn) {
-            notFound = key;
-            break;
-        }
-    }
-    if (!toReturn) return res.status(404).send(notFound + " feature not found for thing " + thingId);
+    await checkFeatures(thingId, thing.features, pathToResult, res);
 
-    //TODO controllare se l'ultimo catch da errore oppure no
     try {
         if (pathToResult.length > 1) {
             let innerFeature = {[pathToResult.at(1)]: thing.features[pathToResult.at(0)][pathToResult.at(1)]}
@@ -396,7 +385,7 @@ app.delete('/things/:thingId/features/:featuresPath(*)', async (req, res) => {
         return res.status(200).send(newMessage('OK', 'thing ' + pathToResult.at(0) + ' relation deleted correctly'));
     } catch (error) {
         if (error?.name === "TypeDBClientError") return res.status(400).send(error.message);
-        return res.status(404).send(newMessage('error', error));
+        return res.status(404).send(newMessage('error', error.message));
     }
 })
 
