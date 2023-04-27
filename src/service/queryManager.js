@@ -412,9 +412,50 @@ async function addFeaturesToThing(thingId, features) {
     }
 } */
 
+async function deleteFeature(featureId) {
+    await featureNotExists(featureId);
+    const clientConnection = client.openClient();
+    const sessionConnection = await client.openSession(clientConnection);
+    const transaction = await client.openTransaction(sessionConnection, true);
+    try {
+        await queryRunner.deleteFeatureByIdQueryRun(featureId, transaction);
+    } catch (error) {
+        await transaction.rollback();
+        console.log(error);
+    } finally {
+        await transaction.commit();
+        await client.closeSession(sessionConnection);
+        await client.closeClient(clientConnection);
+    }
+}
+
+async function featureNotExists(featureId) {
+    const isPresent = await featureAlreadyExists(featureId);
+    if (!isPresent) throw "feature with id " + featureId + " does not exists!!";
+}
+
+async function featureAlreadyExists(featureId) {
+    const clientConnection = client.openClient();
+    const sessionConnection = await client.openSession(clientConnection);
+    const transaction = await client.openTransaction(sessionConnection);
+    try {
+        const transactionResult = await transaction.query.match("match $rel isa relation, has relationId $id; get $id;");
+        let collectionResult = await transactionResult.collect();
+        collectionResult = collectionResult.map(aMap => aMap.get('id').value);
+        return collectionResult.includes(featureId)
+    } catch (error) {
+        console.log(error);
+    } finally {
+        await transaction.close();
+        await client.closeSession(sessionConnection);
+        await client.closeClient(clientConnection);
+    }
+}
+
 module.exports = {
     deleteAThing,
     deleteAttributesOfThing,
+    deleteFeature,
     thingAlreadyExists,
     deleteFeaturesOfThing,
     updateThingAttributes,

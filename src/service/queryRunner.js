@@ -36,6 +36,10 @@ async function deleteThingFeaturesQueryRun(thingId, features, transaction) {
     await transaction.query.delete(queryConstructor.deleteFeaturesQuery(thingId, features));
 }
 
+async function deleteFeatureByIdQueryRun(featureId, transaction) {
+    await transaction.query.delete(queryConstructor.deleteFeatureById(featureId));
+}
+
 async function addThingAttributesQueryRun(thingId, attributes, transaction) {
     await transaction.query.insert(queryConstructor.addAttributesQuery(thingId, attributes));
 }
@@ -53,6 +57,7 @@ module.exports = {
     deleteThingQueryRun,
     deleteThingAttributesQueryRun,
     deleteThingFeaturesQueryRun,
+    deleteFeatureByIdQueryRun,
     addThingAttributesQueryRun,
     addThingFeaturesQueryRun,
     getThingsQueryRun,

@@ -321,9 +321,22 @@ function getFeatureById(featureId) {
     return match;
 }
 
-function deleteFeatureById() {
-
+function featureStringQuery(featureId) {
+    return getThingKey(featureId) + " isa relation, has relationId '" + featureId + "';";
 }
+
+//todo
+function deleteFeatureById(featureId) {
+    let match = getMatch();
+    let del = ["delete"];
+    match.push(space+featureStringQuery(featureId));
+    match.push(space+getThingKey(featureId)+" has attribute "+getGenericKeyAttributeOfEntity(featureId)+end+space);
+    del.push(space+getGenericKeyAttributeOfEntity(featureId)+" isa attribute"+end);
+    del.push(space+getThingKey(featureId)+" isa relation"+end);
+    return match.join("").concat(del.join(""))
+}
+
+
 
 module.exports = {
     getThingKey,
@@ -335,6 +348,7 @@ module.exports = {
     deleteAttributesQuery,
     deleteFeaturesQuery,
     deleteThingLastQuery,
+    deleteFeatureById,
     //TODO:eliminare
     getThingWithFeaturesQuery,
     getThingWithNoFeaturesQuery,
