@@ -448,68 +448,13 @@ app.listen(port, () => {
  * Deletes only one relation with the specified relationId
  */
 app.delete('/features/:featureId', async (req, res) => {
-    //
-    // const {featureId} = req.params;
-    //
-    // const toReturn = thing.attributes[attribute];
-    // if (!toReturn) return res.status(404).send(attribute + " attribute not found for thing " + thingId);
-    // try {
-    //     await queryManager.deleteAttributesOfThing(thingId, {[attribute]: toReturn});
-    //     return res.status(200).send(newMessage('OK', 'thing ' + attribute + ' attribute deleted correctly'));
-    // } catch (error) {
-    //     if (error?.name === "TypeDBClientError") return res.status(400).send(error.message);
-    //     return res.status(404).send(newMessage('error', error));
-    // }
-    //
-    //
-    //
-    //
-    //
-    // const {featureId} = req.params;
-    // if (pathToResult.length > 2) return res.status(404).send("features not found for thing " + thingId);
-    // let thing;
-    // try {
-    //     thing = await queryManager.getAThing(thingId);
-    // } catch (error) {
-    //     if (error?.name === "TypeDBClientError") return res.status(400).send(error.message);
-    //     return res.status(404).send(newMessage('error', error));
-    // }
-    // let toReturn = thing.features;
-    // let notFound;
-    // if (!toReturn) return res.status(404).send("features not found for thing " + thingId);
-    // for (const key of pathToResult) {
-    //     toReturn = toReturn[key];
-    //     if (!toReturn) {
-    //         notFound = key;
-    //         break;
-    //     }
-    //     ;
-    // }
-    // if (!toReturn) return res.status(404).send(notFound + " feature not found for thing " + thingId);
-    // try {
-    //     if (pathToResult.length > 1) {
-    //         let innerFeature = {[pathToResult.at(1)]: thing.features[pathToResult.at(0)][pathToResult.at(1)]}
-    //         let featuresComposition = {[pathToResult.at(0)]: innerFeature};
-    //         await queryManager.deleteFeaturesOfThing(thingId, featuresComposition);
-    //         return res.status(200).send(newMessage('OK', 'thing ' + pathToResult.at(1) + ' relation deleted correctly'));
-    //     }
-    //     await queryManager.deleteFeaturesOfThing(thingId, {[pathToResult.at(0)]: thing.features[pathToResult.at(0)]});
-    //     return res.status(200).send(newMessage('OK', 'thing ' + pathToResult.at(0) + ' relation deleted correctly'));
-    // } catch (error) {
-    //     if (error?.name === "TypeDBClientError") return res.status(400).send(error.message);
-    //     return res.status(404).send(newMessage('error', error));
-    // }
-
-
-
-
-
+    const {featureId} = req.params;
     try {
-        const {relationId} = req.params;
-        await deletes.deleteRelation(relationId);
-        res.send({Success: 'Successful deletion.'});
-    } catch (e) {
-        res.status(400).send({Error: e.message});
+        await queryManager.deleteFeature(featureId);
+        return res.status(200).send(newMessage('OK', 'feature ' + featureId + ' deleted correctly'));
+    } catch (error) {
+        if (error?.name === "TypeDBClientError") return res.status(400).send(error.message);
+        return res.status(404).send(newMessage('error', error));
     }
 })
 
