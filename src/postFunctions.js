@@ -111,7 +111,6 @@ module.exports = {
 }
 //greta
 const connection = require("./clientConfig.js");
-const {TypeDBOptions} = require("typedb-client");
 
 
 /**
