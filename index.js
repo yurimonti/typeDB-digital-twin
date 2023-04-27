@@ -1,10 +1,7 @@
 const express = require("express");
 const queryManager = require('./src/service/queryManager');
-const deletes = require("./src/deleteFunctions");
 // const thingService = require('./src/service/thingService');
-const {deleteFeaturesQuery} = require('./src/queryUtils');
-const typeDB = require("./src/dbconfig");
-const posts = require("./src/postFunctions");
+
 
 const port = 3030;
 const app = express();
@@ -228,72 +225,72 @@ app.post('/things/:thingId/features', async (req, res) => {
 
 //* PATCH requests
 
-/**
- * params: {
- *  thingId --> id of a thing that we want to get,
- * },
- * body: {
- *  attributes:{} --> attributes of thing with id = thingId, that we want to update, if they are present,
- *  features:{} --> features of thing with id = thingId, that we want to update, if they are present 
- * }
- * update thing with id = thingId
- */
-app.patch('/things/:thingId', async (req, res) => {
-    const id = req.params.thingId;
-    const body = req.body;
-    if (!body || Object.keys(body).length <= 0) res.sendStatus(404);
-    try {
-        await thingService.updateThing(id, body?.attributes, body?.features);
-        res.status(200).send(newMessage('success', 'thing successfully updated'))
-    } catch (error) {
-        if (error.name === "TypeDBClientError") res.status(400).send(error.message);
-        else res.status(400).send(newMessage('error', error));
-    }
-})
+// /**
+//  * params: {
+//  *  thingId --> id of a thing that we want to get,
+//  * },
+//  * body: {
+//  *  attributes:{} --> attributes of thing with id = thingId, that we want to update, if they are present,
+//  *  features:{} --> features of thing with id = thingId, that we want to update, if they are present
+//  * }
+//  * update thing with id = thingId
+//  */
+// app.patch('/things/:thingId', async (req, res) => {
+//     const id = req.params.thingId;
+//     const body = req.body;
+//     if (!body || Object.keys(body).length <= 0) res.sendStatus(404);
+//     try {
+//         await thingService.updateThing(id, body?.attributes, body?.features);
+//         res.status(200).send(newMessage('success', 'thing successfully updated'))
+//     } catch (error) {
+//         if (error.name === "TypeDBClientError") res.status(400).send(error.message);
+//         else res.status(400).send(newMessage('error', error));
+//     }
+// })
 
-/**
- * params: {
- *  thingId --> id of a thing that we want to get,
- * },
- * body: {
- *  attributes:{} --> attributes of thing with id = thingId, that we want to update, if they are present
- * }
- * update attributes of thing with id = thingId
- */
-app.patch('/things/:thingId/attributes', async (req, res) => {
-    const id = req.params.thingId;
-    const body = req.body;
-    if (!body || Object.keys(body).length <= 0) res.sendStatus(404);
-    try {
-        await thingService.updateThing(id, body?.attributes);
-        res.status(200).send(newMessage('success', 'thing successfully updated'))
-    } catch (error) {
-        if (error.name === "TypeDBClientError") res.status(400).send(error.message);
-        else res.status(400).send(newMessage('error', error));
-    }
-})
+// /**
+//  * params: {
+//  *  thingId --> id of a thing that we want to get,
+//  * },
+//  * body: {
+//  *  attributes:{} --> attributes of thing with id = thingId, that we want to update, if they are present
+//  * }
+//  * update attributes of thing with id = thingId
+//  */
+// app.patch('/things/:thingId/attributes', async (req, res) => {
+//     const id = req.params.thingId;
+//     const body = req.body;
+//     if (!body || Object.keys(body).length <= 0) res.sendStatus(404);
+//     try {
+//         await thingService.updateThing(id, body?.attributes);
+//         res.status(200).send(newMessage('success', 'thing successfully updated'))
+//     } catch (error) {
+//         if (error.name === "TypeDBClientError") res.status(400).send(error.message);
+//         else res.status(400).send(newMessage('error', error));
+//     }
+// })
 
-/**
- * params: {
- *  thingId --> id of a thing that we want to get,
- * },
- * body: {
- *  features:{} --> features of thing with id = thingId, that we want to update, if they are present 
- * }
- * update features of thing with id = thingId
- */
-app.patch('/things/:thingId/features', async (req, res) => {
-    const id = req.params.thingId;
-    const body = req.body;
-    if (!body || Object.keys(body).length <= 0) res.sendStatus(404);
-    try {
-        await thingService.updateThing(id, undefined, body?.features);
-        res.status(200).send(newMessage('success', 'features of ' + id + ' correctly updated!'));
-    } catch (error) {
-        if (error.name === "TypeDBClientError") res.status(400).send(error.message);
-        else res.status(400).send(newMessage('error', error));
-    }
-})
+// /**
+//  * params: {
+//  *  thingId --> id of a thing that we want to get,
+//  * },
+//  * body: {
+//  *  features:{} --> features of thing with id = thingId, that we want to update, if they are present
+//  * }
+//  * update features of thing with id = thingId
+//  */
+// app.patch('/things/:thingId/features', async (req, res) => {
+//     const id = req.params.thingId;
+//     const body = req.body;
+//     if (!body || Object.keys(body).length <= 0) res.sendStatus(404);
+//     try {
+//         await thingService.updateThing(id, undefined, body?.features);
+//         res.status(200).send(newMessage('success', 'features of ' + id + ' correctly updated!'));
+//     } catch (error) {
+//         if (error.name === "TypeDBClientError") res.status(400).send(error.message);
+//         else res.status(400).send(newMessage('error', error));
+//     }
+// })
 
 
 //* DELETE requests

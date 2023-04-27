@@ -24,7 +24,7 @@ function getThingWithFeaturesQuery(thingId){
 function getThingWithNoFeaturesQuery(thingId){
     let result = [
         "match",
-        " $x isa entity, has thingId '" + thingId + "' ,has attribute $a;", ,
+        " $x isa entity, has thingId '" + thingId + "' ,has attribute $a;",
         " not {($x,$y) isa relation ;};",
         " get $a,$x;",
         " group $x;"
@@ -49,7 +49,7 @@ function getThingsWithFeaturesQuery(){
 function getThingsWithNoFeaturesQuery(){
     let result = [
         "match",
-        " $x isa entity, has attribute $a;", ,
+        " $x isa entity, has attribute $a;",
         " not {($x,$y) isa relation ;};",
         " get $a,$x;",
         " group $x;"
@@ -57,13 +57,13 @@ function getThingsWithNoFeaturesQuery(){
     return result.join("");
 }
 
-const genericEntity = "$entity isa entity;"
-
-const genericRelAttribute = getThingKey('relAttribute');
-
-const genericRelationForAThing = (thingId) =>{
-    return "$rel("+getThingKey(thingId)+","+"$entity) isa relation; $rel has attribute $relAttribute"+end;
-}
+// const genericEntity = "$entity isa entity;"
+//
+// const genericRelAttribute = getThingKey('relAttribute');
+//
+// const genericRelationForAThing = (thingId) =>{
+//     return "$rel("+getThingKey(thingId)+","+"$entity) isa relation; $rel has attribute $relAttribute"+end;
+// }
 
 const thingHasAttributeQuery = (thingId) => {
     return getThingKey(thingId)+" has attribute "+getGenericKeyAttributeOfEntity(thingId)+end;
@@ -78,8 +78,7 @@ function getThingKey(thingId) {
 }
 
 const isADate = (value) => {
-    if (value.length === 24 && value.charAt(10) === 'T' && value.charAt(23) === 'Z') return true;
-    else return false;
+    return value.length === 24 && value.charAt(10) === 'T' && value.charAt(23) === 'Z';
 }
 
 function getMatch() {
@@ -110,21 +109,21 @@ function getEntitiesInRelations(structuredFeatures) {
     return result.join("");
 }
 
-/**
- * construct the part of match of features of a thing with a certain thingId
- * @param {string} thingId id of thing that has these features 
- * @param {*} structuredFeatures structured version of body features
- * @returns part of query regarding relation matches
- */
-function thingFeaturesStringQuery(thingId, structuredFeatures) {
-    let result = [];
-    structuredFeatures.forEach(obj => {
-        let toPushBefore = " $" + obj.relId + "(" + obj.role1 + ":" + getThingKey(thingId) + "," + obj.role2 + ":" + getThingKey(obj.id2) + ") isa " + obj.rel + ";" +
-            space + getThingKey(obj.relId) + " has relationId '" + obj.relId + "';" + space + getThingKey(obj.relId) + " has attribute " + getThingKey("attribute" + obj.relId) + end;
-        !result.includes(toPushBefore) && result.push(toPushBefore);
-    });
-    return result.join("");
-}
+// /**
+//  * construct the part of match of features of a thing with a certain thingId
+//  * @param {string} thingId id of thing that has these features
+//  * @param {*} structuredFeatures structured version of body features
+//  * @returns part of query regarding relation matches
+//  */
+// function thingFeaturesStringQuery(thingId, structuredFeatures) {
+//     let result = [];
+//     structuredFeatures.forEach(obj => {
+//         let toPushBefore = " $" + obj.relId + "(" + obj.role1 + ":" + getThingKey(thingId) + "," + obj.role2 + ":" + getThingKey(obj.id2) + ") isa " + obj.rel + ";" +
+//             space + getThingKey(obj.relId) + " has relationId '" + obj.relId + "';" + space + getThingKey(obj.relId) + " has attribute " + getThingKey("attribute" + obj.relId) + end;
+//         !result.includes(toPushBefore) && result.push(toPushBefore);
+//     });
+//     return result.join("");
+// }
 //TODO:finire
 function thingAttributesToAddStringQuery(thingId, attributes) {
     let thingKey = getThingKey(thingId);
@@ -269,20 +268,20 @@ function newThingQuery(thingId,attributes){
     return insert.join("");
 }
 
-function matchAttribute(thingId, attributes) {
-    let thingKey = getThingKey(thingId);
-    let attributesQuery = [];
-    let attributeKeys = getEntries(attributes);
-    attributeKeys.length > 0 && attributeKeys.forEach(entry => {
-        let value = entry[1];
-        if (isADate(value)) attributesQuery.push(" " + thingKey + " has " + entry[0] + " " + value.slice(0, value.length - 1));
-        else typeof value !== 'string' ?
-            attributesQuery.push(" " + thingKey + " has " + entry[0] + " " + value) :
-            attributesQuery.push(" " + thingKey + " has " + entry[0] + " '" + value + "'");
-        attributesQuery.push(";");
-    });
-    return attributesQuery;
-}
+// function matchAttribute(thingId, attributes) {
+//     let thingKey = getThingKey(thingId);
+//     let attributesQuery = [];
+//     let attributeKeys = getEntries(attributes);
+//     attributeKeys.length > 0 && attributeKeys.forEach(entry => {
+//         let value = entry[1];
+//         if (isADate(value)) attributesQuery.push(" " + thingKey + " has " + entry[0] + " " + value.slice(0, value.length - 1));
+//         else typeof value !== 'string' ?
+//             attributesQuery.push(" " + thingKey + " has " + entry[0] + " " + value) :
+//             attributesQuery.push(" " + thingKey + " has " + entry[0] + " '" + value + "'");
+//         attributesQuery.push(";");
+//     });
+//     return attributesQuery;
+// }
 
 const getRelationsQuery = (features) => {
     let arrayRel = [];
@@ -301,17 +300,17 @@ const getRelationsQuery = (features) => {
     return arrayRel;
 }
 
-function matchFeatures(thingId, features) {
-    let matchFeatures = [];
-    const rels = features ? getRelationsQuery(features) : [];
-    rels.length > 0 && rels.forEach(obj => {
-        let toPushBefore = " " + thingStringQuery(obj.id2);
-        !matchFeatures.includes(toPushBefore) && matchFeatures.push(toPushBefore);
-        toPushBefore = " $" + obj.relId + "(" + obj.role1 + ":" + getThingKey(thingId) + "," + obj.role2 + ":$" + obj.id2 + ") isa " + obj.rel + "; $" + obj.relId + " has relationId '" + obj.relId + "';";
-        !matchFeatures.includes(toPushBefore) && matchFeatures.push(toPushBefore);
-    });
-    return matchFeatures;
-}
+// function matchFeatures(thingId, features) {
+//     let matchFeatures = [];
+//     const rels = features ? getRelationsQuery(features) : [];
+//     rels.length > 0 && rels.forEach(obj => {
+//         let toPushBefore = " " + thingStringQuery(obj.id2);
+//         !matchFeatures.includes(toPushBefore) && matchFeatures.push(toPushBefore);
+//         toPushBefore = " $" + obj.relId + "(" + obj.role1 + ":" + getThingKey(thingId) + "," + obj.role2 + ":$" + obj.id2 + ") isa " + obj.rel + "; $" + obj.relId + " has relationId '" + obj.relId + "';";
+//         !matchFeatures.includes(toPushBefore) && matchFeatures.push(toPushBefore);
+//     });
+//     return matchFeatures;
+// }
 
 
 
@@ -342,10 +341,6 @@ function deleteFeatureById(featureId) {
 
 
 module.exports = {
-    getThingKey,
-    thingStringQuery,
-    thingAttributesToAddStringQuery,
-    thingFeaturesStringQuery,
     addFeaturesQuery,
     addAttributesQuery,
     deleteAttributesQuery,

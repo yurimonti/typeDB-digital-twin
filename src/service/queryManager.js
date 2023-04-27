@@ -1,8 +1,6 @@
-
-
 const queryRunner = require('./queryRunner');
 const client = require('../clientFunction');
-const connection = require("../clientConfig");
+
 
 // * private functions
 
@@ -491,7 +489,6 @@ module.exports = {
     deleteFeature,
     deleteMultipleFeatures,
     deleteMultipleThings,
-    thingAlreadyExists,
     deleteFeaturesOfThing,
     updateThingAttributes,
     updateThingFeatures,
