@@ -23,7 +23,7 @@ async function getThingsQueryRun(transaction) {
 }
 
 async function deleteThingQueryRun(thingId, transaction) {
-    await transaction.query.delete(queryConstructor.deleteFeaturesQuery(thingId));
+    await transaction.query.delete(queryConstructor.deleteFeaturesQuery(thingId, undefined));
     await transaction.query.delete(queryConstructor.deleteAttributesQuery(thingId));
     await transaction.query.delete(queryConstructor.deleteThingLastQuery(thingId));
 }

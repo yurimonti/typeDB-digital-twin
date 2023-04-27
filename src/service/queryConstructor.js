@@ -313,6 +313,18 @@ function matchFeatures(thingId, features) {
     return matchFeatures;
 }
 
+
+function getFeatureById(featureId) {
+    let match = getMatch();
+    match.push(space + getThingKey(featureId) + " isa relationId" + end);
+    match.push(space + getThingKey(featureId) + space + wrapStringValue(featureId) + end);
+    return match;
+}
+
+function deleteFeatureById() {
+
+}
+
 module.exports = {
     getThingKey,
     thingStringQuery,
