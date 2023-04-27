@@ -1,13 +1,9 @@
 const express = require("express");
 const queryManager = require('./src/service/queryManager');
-// const thingService = require('./src/service/thingService');
-
 
 const port = 3030;
 const app = express();
 app.use(express.json());
-
-//yuri
 
 const newMessage = (type, message) => {
     return {[type]: message};
@@ -16,6 +12,49 @@ const newMessage = (type, message) => {
 app.get('/', async (req, res) => {
     res.send("Welcome!!");
 });
+
+/**
+ * Extract a thing given parameters that stands for request and response.
+ *
+ * @param req parameter that stands for request
+ * @param res parameter that stands for response
+ * @returns {Promise<*>} a Promise that contains a thing if extracted, undefined otherwise
+ */
+async function extractThing(req, res) {
+    const {thingId, attribute} = req.params;
+    let thing;
+    try {
+        thing = await queryManager.getAThing(thingId);
+    } catch (error) {
+        return res.status(404).send(error);
+    }
+    const toReturn = thing.attributes[attribute];
+    if (!toReturn) return res.status(404).send(attribute + " attribute not found for thing " + thingId);
+    return toReturn;
+}
+
+/**
+ * Check features of a thing.
+ *
+ * @param thingId id of the thing
+ * @param features features associated to the passed thing
+ * @param pathToResult path to features' names
+ * @param res parameter that stands for response
+ * @returns {Promise<*>} a Promise that contains the features if they exist, otherwise an HTTP 404 error
+ */
+async function checkFeatures(thingId, features, pathToResult, res) {
+    let notFound;
+    if (!features) return res.status(404).send("features not found for thing " + thingId);
+    for (const key of pathToResult) {
+        features = features[key];
+        if (!features) {
+            notFound = key;
+            break;
+        }
+    }
+    if (!features) return res.status(404).send(notFound + " feature not found for thing " + thingId);
+    return features;
+}
 
 
 //* GET requests
@@ -74,16 +113,7 @@ app.get('/things/:thingId/attributes', async (req, res) => {
  * return the value of attribute param for a specific thing with id = thingId
  */
 app.get('/things/:thingId/attributes/:attribute', async (req, res) => {
-    const {thingId, attribute} = req.params;
-    let thing;
-    try {
-        thing = await queryManager.getAThing(thingId);
-    } catch (error) {
-        return res.status(404).send(error);
-    }
-    const toReturn = thing.attributes[attribute];
-    if (!toReturn) return res.status(404).send(attribute + " attribute not found for thing " + thingId);
-    return res.send(toReturn);
+    return res.send(await extractThing(req, res));
 })
 
 /**
@@ -112,19 +142,7 @@ app.get('/things/:thingId/features/:featuresPath(*)', async (req, res) => {
     } catch (error) {
         return res.status(404).send(error);
     }
-    let toReturn = thing.features;
-    let notFound;
-    if (!toReturn) return res.status(404).send("features not found for thing " + thingId);
-    for (const key of pathToResult) {
-        toReturn = toReturn[key];
-        if (!toReturn) {
-            notFound = key;
-            break;
-        }
-        ;
-    }
-    if (!toReturn) return res.status(404).send(notFound + " feature not found for thing " + thingId);
-    return res.send(toReturn);
+    return res.send(await checkFeatures(thingId, thing.features, pathToResult, res));
 })
 
 
@@ -320,14 +338,7 @@ app.delete('/things/:thingId/attributes', async (req, res) => {
 
 app.delete('/things/:thingId/attributes/:attribute', async (req, res) => {
     const {thingId, attribute} = req.params;
-    let thing;
-    try {
-        thing = await queryManager.getAThing(thingId);
-    } catch (error) {
-        return res.status(404).send(error);
-    }
-    const toReturn = thing.attributes[attribute];
-    if (!toReturn) return res.status(404).send(attribute + " attribute not found for thing " + thingId);
+    const toReturn = await extractThing(req, res);
     try {
         await queryManager.deleteAttributesOfThing(thingId, {[attribute]: toReturn});
         return res.status(200).send(newMessage('OK', 'thing ' + attribute + ' attribute deleted correctly'));
@@ -360,6 +371,7 @@ app.delete('/things/:thingId/features/:featuresPath(*)', async (req, res) => {
         if (error?.name === "TypeDBClientError") return res.status(400).send(error.message);
         return res.status(404).send(newMessage('error', error));
     }
+
     let toReturn = thing.features;
     let notFound;
     if (!toReturn) return res.status(404).send("features not found for thing " + thingId);
@@ -369,9 +381,10 @@ app.delete('/things/:thingId/features/:featuresPath(*)', async (req, res) => {
             notFound = key;
             break;
         }
-        ;
     }
     if (!toReturn) return res.status(404).send(notFound + " feature not found for thing " + thingId);
+
+    //TODO controllare se l'ultimo catch da errore oppure no
     try {
         if (pathToResult.length > 1) {
             let innerFeature = {[pathToResult.at(1)]: thing.features[pathToResult.at(0)][pathToResult.at(1)]}
