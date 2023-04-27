@@ -489,6 +489,54 @@ app.delete('/things/:thingId/features/:featuresPath(*)', async (req, res) => {
 })
 
 
+/**
+ * Deletes only one feature with the specified relationId
+ */
+app.delete('/features/:featureId', async (req, res) => {
+    const {featureId} = req.params;
+    try {
+        await queryManager.deleteFeature(featureId);
+        return res.status(200).send(newMessage('OK', 'feature ' + featureId + ' deleted correctly'));
+    } catch (error) {
+        if (error?.name === "TypeDBClientError") return res.status(400).send(error.message);
+        return res.status(404).send(newMessage('error', error));
+    }
+})
+
+
+/**
+ * Deletes more than one feature with the specified relationIds.
+ */
+app.delete("/features", async (req, res) => {
+    const body = req.body;
+    if(!body?.relationId) return res.status(400).send("Invalid request.");
+    try {
+        await queryManager.deleteMultipleFeatures(body.relationId);
+        return res.status(200).send(newMessage('OK', 'features deleted correctly'));
+    } catch (error) {
+        if (error?.name === "TypeDBClientError") return res.status(400).send(error.message);
+        return res.status(404).send(newMessage('error', error));
+    }
+});
+
+
+/**
+ * Deletes more than one thing with the specified thingIds.
+ */
+app.delete("/things", async (req, res) => {
+    const body = req.body;
+    if(!body?.thingId) return res.status(400).send("Invalid request.");
+    try {
+        await queryManager.deleteMultipleThings(body.thingId);
+        return res.status(200).send(newMessage('OK', 'features deleted correctly'));
+    } catch (error) {
+        if (error?.name === "TypeDBClientError") return res.status(400).send(error.message);
+        return res.status(404).send(newMessage('error', error));
+    }
+});
+
+
+
 // *PUT requests
 
 app.put('/things/:thingId', async (req, res) => {
@@ -555,64 +603,6 @@ app.listen(port, () => {
 })
 
 
-//greta todo controllare delete e post
 
-
-/**
- * Deletes only one relation with the specified relationId
- */
-app.delete('/features/:featureId', async (req, res) => {
-    const {featureId} = req.params;
-    try {
-        await queryManager.deleteFeature(featureId);
-        return res.status(200).send(newMessage('OK', 'feature ' + featureId + ' deleted correctly'));
-    } catch (error) {
-        if (error?.name === "TypeDBClientError") return res.status(400).send(error.message);
-        return res.status(404).send(newMessage('error', error));
-    }
-})
-
-
-/**
- * Deletes more than one relation with the specified relationId.
- */
-app.delete("/features", async (req, res) => {
-    try {
-
-        await deletes.deleteMultipleRelations(req.query);
-        res.send({Success: 'Successful deletion.'});
-    } catch (e) {
-        res.status(400).send({Error: e.message});
-    }
-});
-
-
-/**
- * Deletes more than one thing with the specified thingId.
- */
-//todo eliminare attributi e relazioni delle cose prima delle cose stesse
-app.delete("/things", async (req, res) => {
-    try {
-        await deletes.deleteMultipleThings(req.query);
-        res.send({Success: 'Successful deletion.'});
-    } catch (e) {
-        res.status(400).send({Error: e.message});
-    }
-});
-
-
-
-/**
- * Post to add a new thing.
- */
-app.post('/newThing/:thingId', async (req, res) => {
-    try {
-        const {thingId} = req.params;
-        await posts.addThing(thingId, req.body);
-        res.send({Success: 'Successful insertion.'});
-    } catch (e) {
-        res.status(400).send({Error: e.message});
-    }
-})
 
 

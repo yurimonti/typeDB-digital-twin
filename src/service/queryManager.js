@@ -1,11 +1,14 @@
+
+
 const queryRunner = require('./queryRunner');
 const client = require('../clientFunction');
+const connection = require("../clientConfig");
 
 // * private functions
 
 /**
- * 
- * @param {*} aConceptGroup 
+ *
+ * @param {*} aConceptGroup
  * @returns JSON that represents the DB attributes object.
  */
 function getAttributesFromAConceptGroup(aConceptGroup) {
@@ -21,9 +24,9 @@ function getAttributesFromAConceptGroup(aConceptGroup) {
 }
 
 /**
- * 
- * @param {*} aConceptGroup 
- * @param {string} thingId 
+ *
+ * @param {*} aConceptGroup
+ * @param {string} thingId
  * @returns JSON that represents the features object.
  */
 function getRelationsFromAConceptGroup(aConceptGroup, thingId) {
@@ -64,15 +67,15 @@ const fillThing = (concepts) => {
         attributes: {}
     };
     const features = getRelationsFromAConceptGroup(concepts, attributes.thingId);
-    thing = { ...thing, features: features };
+    thing = {...thing, features: features};
     delete attributes.thingId;
     thing.attributes = attributes;
     return thing;
 }
 
 /**
- * 
- * @param {*} conceptMap 
+ *
+ * @param {*} conceptMap
  * @returns map each concept group in more objects that represent partial graph
  */
 const getAllConcepts = async (conceptMap) => {
@@ -87,14 +90,14 @@ const getAllConcepts = async (conceptMap) => {
         const relatedToId = concept.get('t');
         let toAdd = {
             thing: owner,
-            attribute: { label: attribute.type.label.name, value: attribute.value },
+            attribute: {label: attribute.type.label.name, value: attribute.value},
             relation: {},
             roles: {},
             related: ""
         }
         if (rel) {
-            toAdd.relation = { label: rel.type.label.name, id: relAttribute.value };
-            toAdd.roles = { from: role1.label.name, to: role2.label.name };
+            toAdd.relation = {label: rel.type.label.name, id: relAttribute.value};
+            toAdd.roles = {from: role1.label.name, to: role2.label.name};
             toAdd.related = relatedToId.value;
         }
         result.push(toAdd);
@@ -107,7 +110,10 @@ function getAttributesToDeleteFromAThing(thing, attributes) {
     let attributesBodyKey = Object.keys(attributes);
     if (!attributes && attributesBodyKey.length <= 0) throw 'attributes not present in the body request or is empty!!'
     attributesBodyKey.forEach(toModifyKey => {
-        if (thing?.attributes[toModifyKey]) attributesToDelete = { ...attributesToDelete, [toModifyKey]: attributes[toModifyKey] };
+        if (thing?.attributes[toModifyKey]) attributesToDelete = {
+            ...attributesToDelete,
+            [toModifyKey]: attributes[toModifyKey]
+        };
     });
     return Object.keys(attributesToDelete).length > 0 ? attributesToDelete : undefined;
 }
@@ -124,15 +130,14 @@ function getFeaturesToDeleteFromAThing(thing, features) {
             relIdType.forEach(relId => {
                 if (thing.features[type][relId]) {
                     let elementToRemove = thing.features[type][relId];
-                    toRemove = { ...toRemove, [relId]: elementToRemove };
+                    toRemove = {...toRemove, [relId]: elementToRemove};
                 } else {
-                    let elementToAdd = { [relId]: features[type][relId] }
-                    toAdd = { ...toAdd, [type]: elementToAdd };
+                    let elementToAdd = {[relId]: features[type][relId]}
+                    toAdd = {...toAdd, [type]: elementToAdd};
                 }
             });
-            if (toRemove && Object.keys(toRemove).length > 0) toDelete = { ...toDelete, [type]: toRemove };
-        }
-        else toAdd = { ...toAdd, [type]: features[type] };
+            if (toRemove && Object.keys(toRemove).length > 0) toDelete = {...toDelete, [type]: toRemove};
+        } else toAdd = {...toAdd, [type]: features[type]};
     });
     return Object.keys(toDelete).length > 0 ? toDelete : undefined;
 }
@@ -170,7 +175,7 @@ async function thingAlreadyExists(thingId) {
 // * public functions
 
 /**
- * 
+ *
  * @param {string} thingId id of thing that we want to get
  * @returns a Thing that we want to search
  */
@@ -189,7 +194,7 @@ async function getAThing(thingId) {
     await client.closeSession(sessionConnection);
     await client.closeClient(clientConnection);
     return thing;
-};
+}
 
 async function getThings() {
     const clientConnection = client.openClient();
@@ -215,7 +220,7 @@ async function getThings() {
 }
 
 async function createThing(thingId, attributes, features) {
-    if(!thingId || thingId ==="") throw "thingId is required!";
+    if (!thingId || thingId === "") throw "thingId is required!";
     const exists = await thingAlreadyExists(thingId);
     if (exists) throw "This things already exists";
     if (!attributes || Object.keys(attributes).length <= 0)
@@ -228,9 +233,9 @@ async function createThing(thingId, attributes, features) {
     const sessionConnection = await client.openSession(clientConnection);
     const transaction = await client.openTransaction(sessionConnection, true);
     try {
-        await queryRunner.newThingQueryRun(thingId,attributes,transaction);
-        if (features || Object.keys(features).length > 0) 
-            await queryRunner.addThingFeaturesQueryRun(thingId,features,transaction);
+        await queryRunner.newThingQueryRun(thingId, attributes, transaction);
+        if (features || Object.keys(features).length > 0)
+            await queryRunner.addThingFeaturesQueryRun(thingId, features, transaction);
     } catch (error) {
         await transaction.rollback();
         console.log(error);
@@ -287,7 +292,7 @@ async function deleteAttributesOfThing(thingId, attributes) {
 
 /**
  * delete selected features if are present, oterwise delete all features
- * @param {string} thingId id of thing that we want to delete 
+ * @param {string} thingId id of thing that we want to delete
  * @param {*} features features of thing that we want to delete
  */
 async function deleteFeaturesOfThing(thingId, features) {
@@ -367,7 +372,7 @@ async function updateThing(thingId, attributes, features) {
             await queryRunner.addThingFeaturesQueryRun(thingId, features, transaction);
         attributesToDelete && await queryRunner.deleteThingAttributesQueryRun(thingId, attributesToDelete, transaction);
         if (attributes && Object.keys(attributes).length > 0)
-            queryRunner.addThingAttributesQueryRun(thingId, attributes, transaction);
+            await queryRunner.addThingAttributesQueryRun(thingId, attributes, transaction);
     } catch (error) {
         await transaction.rollback();
         console.log(error);
@@ -378,40 +383,11 @@ async function updateThing(thingId, attributes, features) {
     }
 }
 
-/* async function addAttributesToThing(thingId, attributes) {
-    await thingNotExists(thingId);
-    const clientConnection = client.openClient();
-    const sessionConnection = await client.openSession(clientConnection);
-    const transaction = await client.openTransaction(sessionConnection, true);
-    attributesCheck(attributes);
-    try {
-        await queryRunner.addThingAttributesQueryRun(thingId, attributes, transaction);
-    } catch (error) {
-        await transaction.rollback();
-        console.log(error);
-    } finally {
-        await transaction.commit();
-        await client.closeSession(sessionConnection);
-        await client.closeClient(clientConnection);
-    }
-}
-async function addFeaturesToThing(thingId, features) {
-    await thingNotExists(thingId);
-    const clientConnection = client.openClient();
-    const sessionConnection = await client.openSession(clientConnection);
-    const transaction = await client.openTransaction(sessionConnection, true);
-    try {
-        await queryRunner.addThingFeaturesQueryRun(thingId, features, transaction);
-    } catch (error) {
-        await transaction.rollback();
-        console.log(error);
-    } finally {
-        await transaction.commit();
-        await client.closeSession(sessionConnection);
-        await client.closeClient(clientConnection);
-    }
-} */
 
+/**
+ * Delete a feature based on the id
+ * @param featureId id of the feature
+ */
 async function deleteFeature(featureId) {
     await featureNotExists(featureId);
     const clientConnection = client.openClient();
@@ -429,11 +405,66 @@ async function deleteFeature(featureId) {
     }
 }
 
+/**
+ * Delete more than one feature based on the id
+ * @param relIdArray array with the id of the features to delete
+ */
+async function deleteMultipleFeatures(relIdArray) {
+    const clientConnection = client.openClient();
+    const sessionConnection = await client.openSession(clientConnection);
+    const transaction = await client.openTransaction(sessionConnection, true);
+    try {
+        for (const relId of relIdArray) {
+            await featureNotExists(relId);
+            await queryRunner.deleteFeatureByIdQueryRun(relId, transaction);
+        }
+    } catch (error) {
+        await transaction.rollback();
+        throw error;
+    } finally {
+        await transaction.commit();
+        await client.closeSession(sessionConnection);
+        await client.closeClient(clientConnection);
+    }
+}
+
+/**
+ * Delete more than one thing
+ * @param idArray array with the id of the things to delete
+ */
+ async function deleteMultipleThings(idArray) {
+     const clientConnection = client.openClient();
+     const sessionConnection = await client.openSession(clientConnection);
+     const transaction = await client.openTransaction(sessionConnection, true);
+     try {
+         for (const id of idArray) {
+             await thingNotExists(id);
+             await queryRunner.deleteThingQueryRun(id, transaction);
+         }
+     } catch (error) {
+         await transaction.rollback();
+         throw error;
+     } finally {
+         await transaction.commit();
+         await client.closeSession(sessionConnection);
+         await client.closeClient(clientConnection);
+     }
+}
+
+/**
+ * Check if the feature exist in the database and return an error if it does
+ * @param featureId
+ */
 async function featureNotExists(featureId) {
     const isPresent = await featureAlreadyExists(featureId);
     if (!isPresent) throw "feature with id " + featureId + " does not exists!!";
 }
 
+/**
+ * Check in the db for the feature based on the id
+ * @param featureId
+ * @returns {Promise<boolean>}
+ */
 async function featureAlreadyExists(featureId) {
     const clientConnection = client.openClient();
     const sessionConnection = await client.openSession(clientConnection);
@@ -452,10 +483,14 @@ async function featureAlreadyExists(featureId) {
     }
 }
 
+
+
 module.exports = {
     deleteAThing,
     deleteAttributesOfThing,
     deleteFeature,
+    deleteMultipleFeatures,
+    deleteMultipleThings,
     thingAlreadyExists,
     deleteFeaturesOfThing,
     updateThingAttributes,

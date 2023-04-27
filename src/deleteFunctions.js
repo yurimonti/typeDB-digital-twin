@@ -231,8 +231,6 @@ async function deleteMultipleThings(reqQuery) {
      */
     async function deleteMultipleRelations(reqQuery) {
         const conn = await connection.openConnection(false, true);
-
-
         let answer = undefined;
         if (JSON.stringify(reqQuery) === "{}") {
             throw 'Bad request, insert one or more parameters.';
@@ -246,29 +244,20 @@ async function deleteMultipleThings(reqQuery) {
                     if (key === 'relationId') {
                         for (let i = 0; i < value.length; i++) {
                             let attr = value[i];
-// yuri
                             answer = await delTransaction.query.delete("match $p isa relation, has " + key + "'" + attr + "'; delete $p isa relation;");
-//gre
-                            //   answer = await conn.transactionRef.query.delete("match $p isa relation, has " + key + "'" + attr + "'; delete $p isa relation;");
-
                         }
                     } else {
                         throw 'Bad request, one or more parameters not valid.';
                     }
                 } else {
                     if (key === 'relationId') {
-//yuri
                         answer = await delTransaction.query.delete("match $p isa relation, has " + key + "'" + value + "'; delete $p isa relation;");
-//gre
-                        //  answer = await conn.transactionRef.query.delete("match $p isa relation, has " + key + "'" + value + "'; delete $p isa relation;");
-
                     } else {
                         throw 'Bad request, one or more parameters not valid.';
                     }
                 }
             }
         }
-//yu
         await delTransaction.commit();
         await session.close();
         await client.close();

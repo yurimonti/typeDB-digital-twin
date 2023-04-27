@@ -314,18 +314,21 @@ function matchFeatures(thingId, features) {
 }
 
 
-function getFeatureById(featureId) {
-    let match = getMatch();
-    match.push(space + getThingKey(featureId) + " isa relationId" + end);
-    match.push(space + getThingKey(featureId) + space + wrapStringValue(featureId) + end);
-    return match;
-}
 
+/**
+ *
+ * @param featureId
+ * @returns {string}
+ */
 function featureStringQuery(featureId) {
     return getThingKey(featureId) + " isa relation, has relationId '" + featureId + "';";
 }
 
-//todo
+/**
+ * Create the query to delete a feature given the id
+ * @param featureId
+ * @returns {string}
+ */
 function deleteFeatureById(featureId) {
     let match = getMatch();
     let del = ["delete"];

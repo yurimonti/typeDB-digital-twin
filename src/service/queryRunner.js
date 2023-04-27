@@ -36,6 +36,12 @@ async function deleteThingFeaturesQueryRun(thingId, features, transaction) {
     await transaction.query.delete(queryConstructor.deleteFeaturesQuery(thingId, features));
 }
 
+/**
+ * Calls the method to delete a feature by the id
+ * @param featureId
+ * @param transaction
+ * @returns {Promise<void>}
+ */
 async function deleteFeatureByIdQueryRun(featureId, transaction) {
     await transaction.query.delete(queryConstructor.deleteFeatureById(featureId));
 }
