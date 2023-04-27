@@ -6,9 +6,8 @@ const {deleteFeaturesQuery} = require('./src/queryUtils');
 const typeDB = require("./src/dbconfig");
 const posts = require("./src/postFunctions");
 
-const app = express();
-app.use(express.json());
 const port = 3030;
+const app = express();
 app.use(express.json());
 
 //yuri
@@ -35,9 +34,6 @@ app.get("/things", async (req, res) => {
         return res.status(404).send(newMessage('error', error));
     }
 })
-/* app.get('/things', async (req, res) => {
-    res.send(await thingService.getThings());
-}); */
 
 /**
  * params: {
@@ -55,15 +51,6 @@ app.get("/things/:thingId", async (req, res) => {
         return res.status(404).send(newMessage('error', error));
     }
 })
-/* app.get('/things/:thingId', async (req, res) => {
-    const { thingId } = req.params;
-    try {
-        const thing = await thingService.getAThing(thingId);
-        res.send(thing);
-    } catch (error) {
-        res.status(404).send(error);
-    }
-}) */
 
 /**
  * params: {
@@ -81,15 +68,6 @@ app.get('/things/:thingId/attributes', async (req, res) => {
         return res.status(404).send(error);
     }
 })
-/* app.get('/things/:thingId/attributes', async (req, res) => {
-    const { thingId } = req.params;
-    try {
-        let thing = await thingService.getAThing(thingId);
-        res.send(thing.attributes);
-    } catch (error) {
-        res.status(404).send(error);
-    }
-}) */
 
 /**
  * params: {
@@ -110,13 +88,6 @@ app.get('/things/:thingId/attributes/:attribute', async (req, res) => {
     if (!toReturn) return res.status(404).send(attribute + " attribute not found for thing " + thingId);
     return res.send(toReturn);
 })
-/* app.get('/things/:thingId/attributes/:attribute', async (req, res) => {
-    const { thingId, attribute } = req.params;
-    const result = await thingService.getAThing(thingId);
-    const toReturn = result.attributes[attribute];
-    if (!toReturn) res.status(404).send(attribute + " attribute not found for thing " + thingId);
-    res.send(toReturn);
-}) */
 
 /**
  * params: {
@@ -134,15 +105,6 @@ app.get('/things/:thingId/features', async (req, res) => {
         return res.status(404).send(error);
     }
 })
-/* app.get('/things/:thingId/features', async (req, res) => {
-    const {thingId} = req.params;
-    try {
-        let thing = await thingService.getAThing(thingId);
-        res.send(thing.features);
-    } catch (error) {
-        res.status(404).send(error);
-    }
-}) */
 
 app.get('/things/:thingId/features/:featuresPath(*)', async (req, res) => {
     const {thingId, featuresPath} = req.params;
@@ -194,6 +156,7 @@ app.get('/things/:thingId/features/:featuresPath(*)', async (req, res) => {
 //     res.send(toReturn);
 // })
 
+
 //*  POST requests
 
 /**
@@ -215,17 +178,6 @@ app.post('/things', async (req, res) => {
         return res.status(404).send(newMessage('error', error));
     }
 })
-/* app.post("/things",async (req,res)=>{
-    const body = req.body;
-    if(!body.thingId) res.status(400).send(newMessage('error', 'thingId must be present!!'));
-    try {
-        await thingService.createNewThing({ thingId: body.thingId, attributes: body.attributes, features: body.features });
-        res.status(200).send(newMessage('success', 'thing created with success!!'));
-    } catch (error) {
-        if (error.name == "TypeDBClientError") res.status(400).send(error.message);
-        else res.status(400).send(newMessage('error', error));
-    }
-}) */
 
 /**
  * params:{
@@ -249,17 +201,6 @@ app.post('/things/:thingId', async (req, res) => {
         return res.status(404).send(newMessage('error', error));
     }
 })
-/* app.post('/things/:thingId', async (req, res) => {
-    const id = req.params.thingId;
-    const body = req.body;
-    try {
-        await thingService.createNewThing({ thingId: id, attributes: body.attributes, features: body.features });
-        res.status(200).send(newMessage('success', 'thing created with success!!'));
-    } catch (error) {
-        if (error.name == "TypeDBClientError") res.status(400).send(error.message);
-        else res.status(400).send(newMessage('error', error));
-    }
-}) */
 
 app.post('/things/:thingId/attributes', async (req, res) => {
     const {thingId} = req.params;
@@ -272,19 +213,6 @@ app.post('/things/:thingId/attributes', async (req, res) => {
         return res.status(404).send(newMessage('error', error));
     }
 })
-//TODO: eliminare gli attributi del body già presenti nella cosa --> aggiungere attributi dal body alla cosa.
-/* app.post('/things/:thingId/attributes', async (req, res) => {
-    const { thingId } = req.params;
-    const body = req.body;
-    try {
-        await thingService.updateAttributeOfThing(thingId,body?.attributes);
-        res.status(200).send(newMessage('success', 'thing updated with success!!'));
-    } catch (error) {
-        if (error?.name == "TypeDBClientError") res.status(400).send(error.message);
-        else
-            res.status(404).send(newMessage('error', error));
-    }
-}) */
 
 app.post('/things/:thingId/features', async (req, res) => {
     const {thingId} = req.params;
@@ -297,32 +225,6 @@ app.post('/things/:thingId/features', async (req, res) => {
         return res.status(404).send(newMessage('error', error));
     }
 })
-/* app.post('/things/:thingId/features', async (req, res) => {
-    const { thingId } = req.params;
-    const body = req.body;
-    try {
-        await thingService.updateFeaturesOfThing(thingId,body?.features);
-        res.status(200).send(newMessage('success', 'thing updated with success!!'));
-    } catch (error) {
-        if (error?.name == "TypeDBClientError") res.status(400).send(error.message);
-        else
-            res.status(404).send(newMessage('error', error));
-    }
-}) */
-
-/* app.post('/things/:thingId/features', async (req, res) => {
-    const { thingId } = req.params;
-    const body = req.body;
-    try {
-        await thingService.deleteFutures(thingId,body?.features);
-        await thingService.addToThing(thingId,body?.attributes,body?.features);
-        res.status(200).send(newMessage('success', 'thing updated with success!!'));
-    } catch (error) {
-        if (error?.name == "TypeDBClientError") res.status(400).send(error.message);
-        else
-            res.status(404).send(newMessage('error', error));
-    }
-}) */
 
 //* PATCH requests
 
@@ -531,22 +433,6 @@ app.put('/things/:thingId/features', async (req, res) => {
         return res.status(404).send(newMessage('error', error));
     }
 })
-
-//TODO: eliminare gli attributi già presenti dal body nella cosa, aggiungere già presenti nel body e nuovi nella cosa.
-//! FIXME: da fixare
-/* app.put('/things/:thingId/attributes', async (req, res) => {
-    const { thingId } = req.params;
-    const body = req.body;
-    try {
-        await thingService.deleteAttributes(thingId);
-        await thingService.addToThing(thingId,body.attributes,body.features);
-        res.status(200).send(newMessage('success', 'thing updated with success!!'));
-    } catch (error) {
-        if (error?.name == "TypeDBClientError") res.status(400).send(error.message);
-        else
-            res.status(404).send(newMessage('error', error));
-    }
-}) */
 
 // *END requests
 

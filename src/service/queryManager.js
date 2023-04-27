@@ -263,7 +263,7 @@ async function deleteAThing(thingId) {
 }
 
 /**
- * delete selected attributes if are present, oterwise delete all attributes
+ * Delete selected attributes if are present, otherwise delete all attributes
  * @param {string} thingId id of thing that we want to delete
  * @param {*} attributes attributes of thing that we want to delete
  */
