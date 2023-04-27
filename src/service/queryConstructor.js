@@ -248,7 +248,7 @@ function buildRolesQuery(result, obj, thingId) {
 function thingFeaturesToAddStringQuery(thingId, structuredFeatures) {
     let result = [];
     structuredFeatures.length > 0 && structuredFeatures.forEach(obj => {
-       buildRolesQuery(result, obj, thingId);
+        buildRolesQuery(result, obj, thingId);
     });
     return result.join("");
 }
