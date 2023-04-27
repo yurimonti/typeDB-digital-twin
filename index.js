@@ -397,8 +397,8 @@ app.put('/things/:thingId', async (req, res) => {
     const {thingId} = req.params;
     const body = req.body;
     try {
-        await queryManager.deleteAttributesOfThing(thingId);
-        await queryManager.deleteFeaturesOfThing(thingId);
+        await queryManager.deleteAttributesOfThing(thingId, undefined);
+        await queryManager.deleteFeaturesOfThing(thingId, undefined);
         (body?.attributes && Object.keys(body?.attributes).length > 0) && await queryManager.updateThingAttributes(thingId, body?.attributes);
         (body?.features && Object.keys(body?.features).length > 0) && await queryManager.updateThingFeatures(thingId, body?.features);
         return res.status(200).send(newMessage('success', 'thing attributes updated with success!!'));
@@ -412,7 +412,7 @@ app.put('/things/:thingId/attributes', async (req, res) => {
     const {thingId} = req.params;
     const body = req.body;
     try {
-        await queryManager.deleteAttributesOfThing(thingId);
+        await queryManager.deleteAttributesOfThing(thingId, undefined);
         await queryManager.updateThingAttributes(thingId, body?.attributes);
         return res.status(200).send(newMessage('success', 'thing attributes updated with success!!'));
     } catch (error) {
@@ -425,7 +425,7 @@ app.put('/things/:thingId/features', async (req, res) => {
     const {thingId} = req.params;
     const body = req.body;
     try {
-        await queryManager.deleteFeaturesOfThing(thingId);
+        await queryManager.deleteFeaturesOfThing(thingId, undefined);
         await queryManager.updateThingFeatures(thingId, body?.features);
         return res.status(200).send(newMessage('success', 'thing features updated with success!!'));
     } catch (error) {
