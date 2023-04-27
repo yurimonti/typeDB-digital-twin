@@ -5,9 +5,10 @@ const client = require('../clientFunction');
 // * private functions
 
 /**
+ * Extracts attributes from a ConceptGroup in Json format
  *
- * @param {*} aConceptGroup
- * @returns JSON that represents the DB attributes object.
+ * @param aConceptGroup from which the attributes are to be extracted
+ * @returns {{}} a set of attributes extracted from the passed ConceptGroup
  */
 function getAttributesFromAConceptGroup(aConceptGroup) {
     let attributes = {};
@@ -22,10 +23,11 @@ function getAttributesFromAConceptGroup(aConceptGroup) {
 }
 
 /**
+ * Extracts features from a ConceptGroup in Json format
  *
- * @param {*} aConceptGroup
- * @param {string} thingId
- * @returns JSON that represents the features object.
+ * @param thingId id of the thing possessing the features to be extracted
+ * @param aConceptGroup from which the features are to be extracted
+ * @returns {{}} a set of features extracted from the passed ConceptGroup
  */
 function getRelationsFromAConceptGroup(aConceptGroup, thingId) {
     let features = {};
@@ -58,6 +60,12 @@ function getRelationsFromAConceptGroup(aConceptGroup, thingId) {
     return features;
 }
 
+/**
+ * Build a string that represents a thing in Json format, containing its id, attributes and features
+ *
+ * @param concepts from which to extract id, attributes and features
+ * @returns {{features: {}, attributes: {}, thingId: *}} a string that represents a thing in Json format, containing its id, attributes and features
+ */
 const fillThing = (concepts) => {
     const attributes = getAttributesFromAConceptGroup(concepts);
     let thing = {
@@ -72,9 +80,10 @@ const fillThing = (concepts) => {
 }
 
 /**
+ * Extracts all the Concept inside a ConceptMap (so inside the result of a TypeQL query)
  *
- * @param {*} conceptMap
- * @returns map each concept group in more objects that represent partial graph
+ * @param conceptMap from which the Concepts are to be extracted
+ * @returns {{}} a set of all the Concept extracted from ConceptMap
  */
 const getAllConcepts = async (conceptMap) => {
     let result = [];
@@ -103,6 +112,19 @@ const getAllConcepts = async (conceptMap) => {
     return result;
 }
 
+/**
+ * Extracts all the Concept inside a ConceptMap (so inside the result of a TypeQL query)
+ *
+ * @param conceptMap from which the Concepts are to be extracted
+ * @returns {{}} a set of all the Concept extracted from ConceptMap
+ */
+/**
+ * Extracts all the attributes of a thing to be deleted
+ *
+ * @param thing id of the thing from which attributes have to be deleted
+ * @param attributes attributes to be deleted
+ * @returns {{}|undefined} //TODO vedere cosa mettere su questo returns
+ */
 function getAttributesToDeleteFromAThing(thing, attributes) {
     let attributesToDelete = {};
     let attributesBodyKey = Object.keys(attributes);
@@ -117,6 +139,12 @@ function getAttributesToDeleteFromAThing(thing, attributes) {
 }
 
 //TODO: completare
+/**
+ *
+ * @param thing
+ * @param features
+ * @returns {{}|undefined}
+ */
 function getFeaturesToDeleteFromAThing(thing, features) {
     const keysBody = Object.keys(features);
     let toDelete = {};
@@ -140,12 +168,23 @@ function getFeaturesToDeleteFromAThing(thing, features) {
     return Object.keys(toDelete).length > 0 ? toDelete : undefined;
 }
 
+/**
+ * Checks if, inside a passed set of attributes, there is thingId, category or typology
+ *
+ * @param attributes attributes to be checked
+ */
 function attributesCheck(attributes) {
     if (attributes?.thingId) throw "Impossible to change thingId!";
     if (attributes?.category) throw "Impossible to change category!";
     if (attributes?.typology) throw "Impossible to change typology!";
 }
 
+/**
+ * Checks if a thing is present or not. In the negative case, an exception will thrown
+ *
+ * @param thingId id of the thing to be checked
+ * @returns {Promise<void>} a {@see Promise} that indicates if a thing exists or not
+ */
 async function thingNotExists(thingId) {
     const isPresent = await thingAlreadyExists(thingId);
     if (!isPresent) throw "thing with id " + thingId + " does not exists!!";
@@ -173,9 +212,10 @@ async function thingAlreadyExists(thingId) {
 // * public functions
 
 /**
+ * Extracts a Thing, after checking if it exists or not.
  *
- * @param {string} thingId id of thing that we want to get
- * @returns a Thing that we want to search
+ * @param {string} thingId id of thing to be extracted
+ * @returns {Promise<{features: {}, attributes: {}, thingId: *}>} a {@see Promise} that represents the extracted Thing
  */
 async function getAThing(thingId) {
     await thingNotExists(thingId);
@@ -186,7 +226,7 @@ async function getAThing(thingId) {
     if (!thisThingMap) throw "Empty thing";
     // *Array of ConceptMap --> vedere documentazione (si capisce poco)
     let conceptMap = thisThingMap.conceptMaps;
-    const concepts = await getAllConcepts(conceptMap);
+    const concepts = getAllConcepts(conceptMap);
     let thing = fillThing(concepts);
     await transaction.close();
     await client.closeSession(sessionConnection);
@@ -194,6 +234,11 @@ async function getAThing(thingId) {
     return thing;
 }
 
+/**
+ * Extract all the things.
+ *
+ * @returns {Promise<*[]>} a {@see Promise} that represents an {@see Array} of Things
+ */
 async function getThings() {
     const clientConnection = client.openClient();
     const sessionConnection = await client.openSession(clientConnection);
@@ -206,7 +251,7 @@ async function getThings() {
         let conceptMap = element.conceptMaps;
         //let owner = thisThingMap.owner;
         // Prova per le relazioni
-        const concepts = await getAllConcepts(conceptMap);
+        const concepts = getAllConcepts(conceptMap);
         const thing = fillThing(concepts);
         things.push(thing);
     }
@@ -217,6 +262,14 @@ async function getThings() {
     else return things;
 }
 
+/**
+ *  Create a new Thing
+ *
+ * @param thingId id of the thing to be created
+ * @param attributes attributes to be associated to the new thing
+ * @param features features to be associated to the new thing
+ * @returns {Promise<void>}a {@see Promise} that represents the creation of a new Thing
+ */
 async function createThing(thingId, attributes, features) {
     if (!thingId || thingId === "") throw "thingId is required!";
     const exists = await thingAlreadyExists(thingId);
@@ -245,8 +298,10 @@ async function createThing(thingId, attributes, features) {
 }
 
 /**
- * delete a thing compleatly
- * @param {string} thingId id of thing that we want to delete
+ * Deletes a Thing
+ *
+ * @param thingId id of the Thing to be deleted
+ * @returns {Promise<void>} a {@see Promise} that represents the deletion of a Thing
  */
 async function deleteAThing(thingId) {
     await thingNotExists(thingId);
@@ -266,9 +321,12 @@ async function deleteAThing(thingId) {
 }
 
 /**
- * Delete selected attributes if are present, otherwise delete all attributes
- * @param {string} thingId id of thing that we want to delete
+ * Delete a particular set of attributes of the specified thing: if the associated parameter is empty,
+ * all the attributes of the specified Thing will be deleted
+ *
+ * @param {string} thingId id of Thing that is the attributes owner
  * @param {*} attributes attributes of thing that we want to delete
+ * @returns {Promise<void>} a {@see Promise} that represents the deletion of a particular set of attributes of the specified Thing
  */
 async function deleteAttributesOfThing(thingId, attributes) {
     await thingNotExists(thingId);
@@ -288,10 +346,14 @@ async function deleteAttributesOfThing(thingId, attributes) {
     }
 }
 
+
 /**
- * delete selected features if are present, oterwise delete all features
- * @param {string} thingId id of thing that we want to delete
- * @param {*} features features of thing that we want to delete
+ * Delete a particular set of features of the specified Thing: if the associated parameter is empty,
+ * all the features of the specified Thing will be deleted
+ *
+ * @param thingId id of Thing that is the attributes owner
+ * @param features features of thing that we want to delete
+ * @returns {Promise<void>} a {@see Promise} that represents the deletion of a particular set of features of the specified Thing
  */
 async function deleteFeaturesOfThing(thingId, features) {
     await thingNotExists(thingId);
@@ -310,6 +372,13 @@ async function deleteFeaturesOfThing(thingId, features) {
     }
 }
 
+/**
+ * Updates a particular set of attributes of the specified Thing
+ *
+ * @param thingId id of Thing that is the attributes owner
+ * @param attributes attributes to be updated
+ * @returns {Promise<void>} a {@see Promise} that represents the update of a particular set of attributes of the specified Thing
+ */
 async function updateThingAttributes(thingId, attributes) {
     if (!attributes || Object.keys(attributes).length <= 0) throw "Attributes are not presents in the body request!";
     let thing = await getAThing(thingId);
@@ -331,6 +400,13 @@ async function updateThingAttributes(thingId, attributes) {
     }
 }
 
+/**
+ * Updates a particular set of features of the specified Thing
+ *
+ * @param thingId id of Thing that is the features owner
+ * @param features features to be updated
+ * @returns {Promise<void>} a {@see Promise} that represents the update of a particular set of features of the specified Thing
+ */
 async function updateThingFeatures(thingId, features) {
     if (!features || Object.keys(features).length <= 0) throw "Features are not presents in the body request!";
     let thing = await getAThing(thingId);
@@ -351,6 +427,14 @@ async function updateThingFeatures(thingId, features) {
     }
 }
 
+/**
+ * Updates an entire Thing
+ *
+ * @param thingId id of Thing to be fully updated
+ * @param attributes attributes to be updated
+ * @param features attributes to be updated
+ * @returns {Promise<void>} a {@see Promise} that represents the entire update of the specified Thing
+ */
 async function updateThing(thingId, attributes, features) {
     let thing = await getAThing(thingId);
     const clientConnection = client.openClient();
@@ -381,10 +465,11 @@ async function updateThing(thingId, attributes, features) {
     }
 }
 
-
 /**
  * Delete a feature based on the id
+
  * @param featureId id of the feature
+ * @returns {Promise<void>} a {@see Promise} that represents the deletion of a particular feature
  */
 async function deleteFeature(featureId) {
     await featureNotExists(featureId);
@@ -404,8 +489,10 @@ async function deleteFeature(featureId) {
 }
 
 /**
- * Delete more than one feature based on the id
- * @param relIdArray array with the id of the features to delete
+ * Delete multiple features based on their ids
+
+ * @param relIdArray array with the ids of the features to delete
+ * @returns {Promise<void>} a {@see Promise} that represents the deletion of a set of features
  */
 async function deleteMultipleFeatures(relIdArray) {
     const clientConnection = client.openClient();
@@ -427,8 +514,10 @@ async function deleteMultipleFeatures(relIdArray) {
 }
 
 /**
- * Delete more than one thing
- * @param idArray array with the id of the things to delete
+ * Delete multiple Things based on their ids
+
+ * @param idArray array with the ids of the Things to delete
+ * @returns {Promise<void>} a {@see Promise} that represents the deletion of a set of Things
  */
  async function deleteMultipleThings(idArray) {
      const clientConnection = client.openClient();
@@ -450,8 +539,10 @@ async function deleteMultipleFeatures(relIdArray) {
 }
 
 /**
- * Check if the feature exist in the database and return an error if it does
- * @param featureId
+ * Checks if a feature exists or not. In the negative case, an exception will throw
+ *
+ * @param featureId id of the feature to be checked
+ * @returns {Promise<void>} a {@see Promise} that represents the control on the feature existence
  */
 async function featureNotExists(featureId) {
     const isPresent = await featureAlreadyExists(featureId);
@@ -459,9 +550,11 @@ async function featureNotExists(featureId) {
 }
 
 /**
- * Check in the db for the feature based on the id
- * @param featureId
- * @returns {Promise<boolean>}
+ * Checks if a feature already exists or not
+ *
+ * @param featureId id of the feature to be checked
+ * @returns {Promise<boolean>} a {@see Promise} that represents a boolean value which is true if the indicated feature exists,
+ * false otherwise
  */
 async function featureAlreadyExists(featureId) {
     const clientConnection = client.openClient();
