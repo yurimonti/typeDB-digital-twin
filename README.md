@@ -391,6 +391,7 @@ Delete a specific feature of a thing with id `thingId`.
 | :-------- | :------- | :-------------------------------- |
 | `thingId`      | `string` | **Required**. Id of thing to get |
 | `featurePath`      | `string` | **Required**. feature of thing to delete |
+
 return `200` code.
 return `404` code if there is none thing with `thingId` or `featurePath` doesn't exist.
 
