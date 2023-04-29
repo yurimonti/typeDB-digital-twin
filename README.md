@@ -26,7 +26,7 @@ For more information read this article: [First Step to Digital Twin: Model your 
 
 ## TypeDB
 
-**TypeDB ** is a **strongly-typed **database with a rich and logical type system.  TypeDB empowers you to tackle complex problems, and **TypeQL** is its query language.
+**TypeDB** is a **strongly-typed** database with a rich and logical type system.  TypeDB empowers you to tackle complex problems, and **TypeQL** is its query language.
 
 There are some advantagies of using this technology:
 - Ability to handle complex data models: TypeDB is designed to handle complex data models that are difficult to manage with traditional databases. It provides a schema-like structure that allows for relationships between entities to be defined and managed.
