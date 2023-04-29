@@ -5,7 +5,49 @@ In particular we used typeDB for Database technology (see: [TypeDB official page
 The tool implements CRUD API (we take inspiration from [Eclipse Ditto APIs](https://www.eclipse.org/ditto/)) with additional search functionalities over digital twin properties.
 
 ## Table of content
-[TOCM]
+- [typeDB-digital-twin](#typedb-digital-twin)
+  - [Table of content](#table-of-content)
+  - [What is a digital twin?](#what-is-a-digital-twin)
+  - [Tech Stack](#tech-stack)
+  - [TypeDB](#typedb)
+    - [A higher level of expressivity](#a-higher-level-of-expressivity)
+      - [Entity-Relationship Model](#entity-relationship-model)
+      - [Type Hierarchies](#type-hierarchies)
+      - [N-ary Relations](#n-ary-relations)
+      - [Nested Relations](#nested-relations)
+    - [A higher degree of safety](#a-higher-degree-of-safety)
+      - [Logical Data Validation](#logical-data-validation)
+      - [Logical Query Validation](#logical-query-validation)
+    - [Evolved with logical inference](#evolved-with-logical-inference)
+      - [Rules](#-rules)
+      - [Inference](#inference)
+    - [A robust and programmatic API](#a-robust-and-programmatic-api)
+      - [ACID Transactions](#acid-transactions)
+  - [Setup](#setup)
+  - [How to run](#how-to-run)
+  - [API Reference](#api-reference)
+    - [GET requests](#get-requests)
+      - [Get all Things](#get-all-things)
+      - [Get a specific Thing](#get-a-specific-thing)
+      - [Get attributes of a specific Thing](#get-attributes-of-a-specific-thing)
+      - [Get specific attribute of a specific Thing](#get-specific-attribute-of-a-specific-thing)
+      - [Get features of a specific Thing](#get-features-of-a-specific-thing)
+      - [Get specific feature of a specific Thing](#get-specific-feature-of-a-specific-thing)
+    - [POST requests](#post-requests)
+      - [Create a Thing](#create-a-thing)
+      - [Update a Thing](#update-a-thing)
+      - [Update a Thing attributes](#update-a-thing-attributes)
+      - [Update a Thing features](#update-a-thing-features)
+    - [DELETE requests](#delete-requests)
+      - [Delete a Thing](#delete-a-thing)
+      - [Delete attributes of a specific Thing](#delete-attributes-of-a-specific-thing)
+      - [Delete features of a specific Thing](#delete-features-of-a-specific-thing)
+      - [Delete specific attribute of a specific Thing](#delete-specific-attribute-of-a-specific-thing)
+      - [Delete specific feature of a specific Thing](#delete-specific-feature-of-a-specific-thing)
+    - [PUT requests](#put-requests)
+      - [Total update a Thing](#total-update-a-thing)
+      - [Total update attributes of a Thing](#total-update-attributes-of-a-thing)
+      - [Total update a Thing](#total-update-a-thing)
 
 ## What is a digital twin?
 
@@ -60,7 +102,7 @@ TypeDB allows you to define rules in your schema. This extends the expressivity 
 #### Inference
 TypeDB's inference facility translates one query into all of its possible interpretations. This happens through two mechanisms: type-based and rule-based inference. Not only does this derive new conclusions and uncovers relationships that would otherwise be hidden, but it also enables the abstraction of complex patterns into simple queries.
 
-### A robust, programmatic API
+### A robust and programmatic API
 TypeDB Clients provide stateful objects, Sessions and Transactions, to interact with the database programmatically. The transactions provide ACID guarantees, up to snapshot isolation.
 #### ACID Transactions
 TypeDB provides ACID guarantees, up to Snapshot Isolation, through of schema validation and consistent transactions. With lightweight optimistic transactions, TypeDB allows a high number of concurrent read and write transactions. With atomic all-or-nothing commits, transactional semantics become easy to reason over.
