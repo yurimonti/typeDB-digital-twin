@@ -70,7 +70,7 @@ For more information read this article: [First Step to Digital Twin: Model your 
 
 **TypeDB** is a **strongly-typed** database with a rich and logical type system.  TypeDB empowers you to tackle complex problems, and **TypeQL** is its query language.
 
-There are some advantagies of using this technology:
+There are some advantages of using this technology:
 - Ability to handle complex data models: TypeDB is designed to handle complex data models that are difficult to manage with traditional databases. It provides a schema-like structure that allows for relationships between entities to be defined and managed.
 - Flexible data management: TypeDB supports various data types including text, numbers, dates, and more. It also allows for data to be organized and queried in different ways, making it a flexible option for data management.
 - Scalability: TypeDB is designed with scalability in mind, allowing businesses to scale up or down as needed. It can handle large amounts of data and high transaction volumes.
@@ -82,7 +82,7 @@ TypeDB allows you to model your domain based on logical and object-oriented prin
 #### Entity-Relationship Model
 TypeDB allows you to model your domain using the well-known Entity-Relationship model. It is composed of entity types, relation types, and attribute types, with the introduction of role types. TypeDB allows you to leverage the full expressivity of the ER model, and describe your schema through first normal form.
 #### Type Hierarchies
-TypeDB allows you to easily model type inheritance into your domain model. Following logical and object-oriented principles, TypeDB allows data types to inherit the behaviours and properties of their supertypes. Complex data structures become reusable, and data interpretation becomes richer through polymorphism.
+TypeDB allows you to easily model type inheritance into your domain model. Following logical and object-oriented principles, TypeDB allows data types to inherit the behaviors and properties of their supertypes. Complex data structures become reusable, and data interpretation becomes richer through polymorphism.
 #### N-ary Relations
 In the real world, relations are not  just binary connections between two things. In rich systems, we often need to capture three or more things related with each other at once. Representing them as separate binary relationships would lose information. TypeDB can naturally represent an arbitrary number of things as one relation.
 #### Nested Relations
@@ -93,12 +93,12 @@ Types provide a way to describe the logical structures of your data, allowing Ty
 #### Logical Data Validation
 Inserted data gets validated beyond static type-checking of attribute value types. Entities are validated to only have the correct attributes, and relations are validated to only relate things that are logically allowed. TypeDB performs richer validation of inserted entities and relations by evaluating the polymorphic types of the things involved.
 #### Logical Query Validation
-Read queries executed on TypeDB go through a type resolution process. This process not only optimises the query's execution, but also acts as a static type checker to reject meaningless and unsatisfiable queries, as they are likely a user error.
+Read queries executed on TypeDB go through a type resolution process. This process not only optimizes the query's execution, but also acts as a static type checker to reject meaningless and unsatisfiable queries, as they are likely a user error.
 
 ### Evolved with logical inference
 TypeDB encodes your data for logical interpretation by a reasoning engine. It enables type-inference and rule-inference, which create logical abstractions of data. This allows the discovery of facts and patterns that would otherwise be too hard to find; and complex queries become much simpler.
 #### Rules
-TypeDB allows you to define rules in your schema. This extends the expressivity of your model as it enables the system to derive new conclusions when a certain logical form in your dataset is satisfied. Like functions in programming, rules can chain onto one another, creating abstractions of behaviour at the data level.
+TypeDB allows you to define rules in your schema. This extends the expressivity of your model as it enables the system to derive new conclusions when a certain logical form in your dataset is satisfied. Like functions in programming, rules can chain onto one another, creating abstractions of behavior at the data level.
 #### Inference
 TypeDB's inference facility translates one query into all of its possible interpretations. This happens through two mechanisms: type-based and rule-based inference. Not only does this derive new conclusions and uncovers relationships that would otherwise be hidden, but it also enables the abstraction of complex patterns into simple queries.
 
