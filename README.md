@@ -410,6 +410,46 @@ Delete a specific feature of a thing with id `thingId`.
 return `200` code.
 return `404` code if there is none thing with `thingId` or `featurePath` doesn't exist.
 
+#### Delete a feature
+Delete only one feature with the specified `featureId`.
+```http
+  DELETE /features/{featureId}
+```
+
+| Parameter | Type     | Description                       |
+| :-------- | :------- | :-------------------------------- |
+| `featureId`      | `string` | **Required**. Id of feature to delete |
+
+return `200` code.
+return `404` code if there is none feature with `featureId`.
+
+#### Delete multiple features
+Delete multiple features contained in the body. 
+```http
+  DELETE /features
+```
+
+| Parameter | Type     | Description                       |
+| :-------- | :------- | :-------------------------------- |
+| `body.relationId`      | `string[]` | **Required**. Ids of features to delete |
+
+return `200` code.
+return `404` code if there is none feature contained in `relationId`.
+
+
+#### Delete multiple things
+Delete multiple things contained in the body. 
+```http
+  DELETE /things
+```
+
+| Parameter | Type     | Description                       |
+| :-------- | :------- | :-------------------------------- |
+| `body.thingId`      | `string[]` | **Required**. Ids of things to delete |
+
+return `200` code.
+return `404` code if there is none thing contained in `thingId`.
+
 ---
 ### PUT requests
 ---
@@ -431,7 +471,7 @@ return `400` code if parameters are not compliant to the schema.
 #### Total update attributes of a Thing
 Full update attributes of a specific thing with id `thingId`.
 ```http
-  PUT /things/{thingId}
+  PUT /things/{thingId}/attributes
 ```
 
 | Parameter | Type     | Description                       |
@@ -446,7 +486,7 @@ return `400` code if parameters are not compliant to the schema.
 #### Total update a Thing
 Full update a specific thing with id `thingId`.
 ```http
-  PUT /things/{thingId}
+  PUT /things/{thingId}/features
 ```
 
 | Parameter | Type     | Description                       |
