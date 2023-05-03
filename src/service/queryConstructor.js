@@ -1,3 +1,5 @@
+// noinspection JSUnresolvedVariable,JSCheckFunctionSignatures
+
 const space = " ";
 const end = ";";
 
@@ -223,7 +225,6 @@ function thingFeaturesToMatchDelStringQuery(thingId, structuredFeatures) {
         let toPushBefore = space + getThingKey(obj.relId) + " has attribute " + getGenericKeyAttributeOfEntity(obj.relId) + end;
         !result.includes(toPushBefore) && result.push(toPushBefore);
     });
-    console.log(result);
     return result.join("");
 }
 

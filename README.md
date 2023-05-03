@@ -1,7 +1,7 @@
 # typeDB-digital-twin
 
 typeDB-digital-twin is a management prototype tool based on a graph database model where assets, like IoT devices, can be represented in terms of their digital twins.
-In particular we used typeDB for Database technology (see: [TypeDB official page](https://vaticle.com/typedb).).
+In particular, we used typeDB for Database technology (see: [TypeDB official page](https://vaticle.com/typedb).).
 The tool implements CRUD API (we take inspiration from [Eclipse Ditto APIs](https://www.eclipse.org/ditto/)) with additional search functionalities over digital twin properties.
 
 ## Table of content
@@ -27,7 +27,7 @@ The tool implements CRUD API (we take inspiration from [Eclipse Ditto APIs](http
 Digital twin is a digital representation of a physical asset (pumps, turbines, sensor, etc...).
 This feature is famous in asset-intensive industries.
 The real capability comes when an asset can be related to its surrounding environment, for instance a relation with other assets.
-Using General Electric's definition of Digital Twin for reference: “Digital twins are software representations of assets and processes that are used to understand, predict, and optimize performance in order to achieve improved business outcomes. Digital twins consist of three components: a data model, a set of analytics or algorithms, and knowledge.”
+Using General Electrics definition of Digital Twin for reference: “Digital twins are software representations of assets and processes that are used to understand, predict, and optimize performance in order to achieve improved business outcomes. Digital twins consist of three components: a data model, a set of analytics or algorithms, and knowledge.”
 In our project we only focused on the data model parts.
 These types of model semantics can easily be represented by a graph, and in fact, these data are always stored using technologies of Graph Databases.
 For more information read this article: [First Step to Digital Twin: Model your Asset Data](https://www.linkedin.com/pulse/first-step-digital-twin-model-your-asset-data-gregory-mckim/).
@@ -85,7 +85,8 @@ TypeDB provides ACID guarantees, up to Snapshot Isolation, through of schema val
 
 First of all we need to install typeDB: there are more possibilities to do that, so we suggest to see [TypeDB documentation](https://vaticle.com/download).
 Secondly we suggest downloading and also use TypeDB studio, downloadable on the same source of the previous one, because with that it is possible to manage schema and query without using console.
-Nextly we need to download and load our example schema `schema.tql` in a schema write transaction, using TypeDB studio or console if you want (We encourage you to see official documentation).
+
+Subsequently, we need to download and load our example schema `schema.tql` in a schema write transaction, using TypeDB studio or console if you want (We encourage you to see official documentation).
 
 ## How to run
 
@@ -101,7 +102,7 @@ After that is possible to run the server:
 npm start
 ```
 
-Now it is possible to call the APIs with a HTTP Client like [Postman](https://www.postman.com/).
+Now it is possible to call the APIs with an HTTP Client like [Postman](https://www.postman.com/).
 The base url is the localhost with port 3030  `localhost:3030`.
 
 
@@ -112,7 +113,8 @@ A Thing is composed by:
 - `attributes`, that represents the properties that a thing has. (category and typology cannot be modified or deleted).
 - `features`, that represents the relation with its surrounding environment.
 
-### GET requests
+## GET requests
+
 ---
 #### Get all Things
 Get all things
@@ -126,9 +128,9 @@ Get a specific thing with id `thingId`.
   GET /things/{thingId}
 ```
 
-| Parameter | Type     | Description                       |
-| :-------- | :------- | :-------------------------------- |
-| `thingId`      | `string` | **Required**. Id of thing to get |
+| Parameter | Type     | Description                      |
+|:----------|:---------|:---------------------------------|
+| `thingId` | `string` | **Required**. Id of thing to get |
 
 return thing with `thingId` with `200` code.
 return `404` code if there is none thing with `thingId`.
@@ -139,9 +141,9 @@ Get all attributes of a thing with id `thingId`.
   GET /things/{thingId}/attributes
 ```
 
-| Parameter | Type     | Description                       |
-| :-------- | :------- | :-------------------------------- |
-| `thingId`      | `string` | **Required**. Id of thing to get |
+| Parameter | Type     | Description                      |
+|:----------|:---------|:---------------------------------|
+| `thingId` | `string` | **Required**. Id of thing to get |
 
 return thing `attributes` with `thingId` and `200` code.
 return `404` code if there is none thing with `thingId`.
@@ -152,10 +154,10 @@ Get a specific attribute of a thing with id `thingId`.
   GET /things/{thingId}/attributes/{attribute}
 ```
 
-| Parameter | Type     | Description                       |
-| :-------- | :------- | :-------------------------------- |
-| `thingId`      | `string` | **Required**. Id of thing to get |
-| `attribute`      | `string` | **Required**. attribute of thing to get |
+| Parameter   | Type     | Description                             |
+|:------------|:---------|:----------------------------------------|
+| `thingId`   | `string` | **Required**. Id of thing to get        |
+| `attribute` | `string` | **Required**. attribute of thing to get |
 
 return thing `attribute` with `thingId` and `200` code.
 return `404` code if there is none thing with `thingId` or `attribute` not exists.
@@ -166,9 +168,9 @@ Get all features of a thing with id `thingId`.
   GET /things/{thingId}/features
 ```
 
-| Parameter | Type     | Description                       |
-| :-------- | :------- | :-------------------------------- |
-| `thingId`      | `string` | **Required**. Id of thing to get |
+| Parameter | Type     | Description                      |
+|:----------|:---------|:---------------------------------|
+| `thingId` | `string` | **Required**. Id of thing to get |
 
 return thing `features` with `thingId` and `200` code.
 return `404` code if there is none thing with `thingId`.
@@ -179,16 +181,17 @@ Get a specific feature, following `featurePath`, of a thing with id `thingId`.
   GET /things/{thingId}/features/{featurePath}
 ```
 
-| Parameter | Type     | Description                       |
-| :-------- | :------- | :-------------------------------- |
-| `thingId`      | `string` | **Required**. Id of thing to get |
-| `featurePath`      | `string` | **Required**. feature of thing to get |
+| Parameter     | Type     | Description                           |
+|:--------------|:---------|:--------------------------------------|
+| `thingId`     | `string` | **Required**. Id of thing to get      |
+| `featurePath` | `string` | **Required**. feature of thing to get |
 
 return thing feature `featurePath` with `thingId` and `200` code.
-return `404` code if there is none thing with `thingId`, or `featurePath` doesn’t exist.
+return `404` code if there is none thing with `thingId`, or `featurePath` doesn't exist.
 
 ---
 ### POST requests
+
 ---
 
 #### Create a Thing
@@ -224,11 +227,11 @@ Add new thing with specific attributes (required) and features.
   }
 ```
 
-| Parameter | Type     | Description                       |
-| :-------- | :------- | :-------------------------------- |
-| `body.thingId`      | `string` | **Required**. Id of thing to create |
-| `body.attributes`      | `JSON` | **Required**. attributes to associate to thing |
-| `body.features`      | `JSON` |  features to associate to thing |
+| Parameter         | Type     | Description                                    |
+|:------------------|:---------|:-----------------------------------------------|
+| `body.thingId`    | `string` | **Required**. Id of thing to create            |
+| `body.attributes` | `JSON`   | **Required**. attributes to associate to thing |
+| `body.features`   | `JSON`   | features to associate to thing                 |
 
 return `200` code if parameters correspond to real parameters that are valid according to the schema, and create correlated Thing.
 return `404` code if `attribute.thingId` already exists.
@@ -266,11 +269,11 @@ Modify properties that are already present on thing and add ones are not. (Accor
   }
 ```
 
-| Parameter | Type     | Description                       |
-| :-------- | :------- | :-------------------------------- |
-| `thingId`      | `string` | **Required**. Id of thing to create |
-| `body.attributes`      | `JSON` | **Required**. attributes to update |
-| `body.features`      | `JSON` |  features to update |
+| Parameter         | Type     | Description                         |
+|:------------------|:---------|:------------------------------------|
+| `thingId`         | `string` | **Required**. Id of thing to create |
+| `body.attributes` | `JSON`   | **Required**. attributes to update  |
+| `body.features`   | `JSON`   | features to update                  |
 
 return `200` code if parameters correspond to real parameters that are valid according to the schema.
 return `404` code if `attribute.thingId` not exists.
@@ -292,10 +295,10 @@ Category and Typology attributes cannot be changed.
   }
 ```
 
-| Parameter | Type     | Description                       |
-| :-------- | :------- | :-------------------------------- |
-| `thingId`      | `string` | **Required**. Id of thing to create |
-| `body.attributes`      | `JSON` | **Required**. attributes to update |
+| Parameter         | Type     | Description                         |
+|:------------------|:---------|:------------------------------------|
+| `thingId`         | `string` | **Required**. Id of thing to create |
+| `body.attributes` | `JSON`   | **Required**. attributes to update  |
 
 return `200` code if parameters correspond to real parameters that are valid according to the schema.
 return `404` code if `thingId` doesn't exist.
@@ -330,17 +333,18 @@ Modify features that are already present on thing and add ones that are not. (Ac
   }
 ```
 
-| Parameter | Type     | Description                       |
-| :-------- | :------- | :-------------------------------- |
-| `thingId`      | `string` | **Required**. Id of thing to create |
-| `body.features`      | `JSON` | **Required**. features to update |
+| Parameter       | Type     | Description                         |
+|:----------------|:---------|:------------------------------------|
+| `thingId`       | `string` | **Required**. Id of thing to create |
+| `body.features` | `JSON`   | **Required**. features to update    |
 
 return `200` code if parameters correspond to real parameters that are valid according to the schema.
-return `404` code if `thingId` doesn’t exist.
+return `404` code if `thingId` doesn't exist.
 return `400` code if parameters are not compliant to the schema.
 
 ---
 ### DELETE requests
+
 ---
 
 #### Delete a Thing
@@ -349,9 +353,9 @@ Delete a specific thing with id `thingId`.
   DELETE /things/{thingId}
 ```
 
-| Parameter | Type     | Description                       |
-| :-------- | :------- | :-------------------------------- |
-| `thingId`      | `string` | **Required**. Id of thing to delete |
+| Parameter | Type     | Description                         |
+|:----------|:---------|:------------------------------------|
+| `thingId` | `string` | **Required**. Id of thing to delete |
 
 return `200` code.
 return `404` code if there is none thing with `thingId`.
@@ -362,9 +366,9 @@ Delete all attributes of a thing with id `thingId`.
   DELETE /things/{thingId}/attributes
 ```
 
-| Parameter | Type     | Description                       |
-| :-------- | :------- | :-------------------------------- |
-| `thingId`      | `string` | **Required**. Id of thing to delete |
+| Parameter | Type     | Description                         |
+|:----------|:---------|:------------------------------------|
+| `thingId` | `string` | **Required**. Id of thing to delete |
 
 return `200` code.
 return `404` code if there is none thing with `thingId`.
@@ -375,9 +379,9 @@ Delete all features of a thing with id `thingId`.
   DELETE /things/{thingId}/features
 ```
 
-| Parameter | Type     | Description                       |
-| :-------- | :------- | :-------------------------------- |
-| `thingId`      | `string` | **Required**. Id of thing to delete |
+| Parameter | Type     | Description                         |
+|:----------|:---------|:------------------------------------|
+| `thingId` | `string` | **Required**. Id of thing to delete |
 
 return `200` code.
 return `404` code if there is none thing with `thingId`.
@@ -388,10 +392,10 @@ Delete a specific attribute of a thing with id `thingId`.
   DELETE /things/{thingId}/attributes/{attribute}
 ```
 
-| Parameter | Type     | Description                       |
-| :-------- | :------- | :-------------------------------- |
-| `thingId`      | `string` | **Required**. Id of thing to get |
-| `attribute`      | `string` | **Required**. attribute of thing to delete |
+| Parameter   | Type     | Description                                |
+|:------------|:---------|:-------------------------------------------|
+| `thingId`   | `string` | **Required**. Id of thing to get           |
+| `attribute` | `string` | **Required**. attribute of thing to delete |
 
 return `200` code.
 return `404` code if there is none thing with `thingId` or `attribute` doesn't exist.
@@ -402,10 +406,10 @@ Delete a specific feature of a thing with id `thingId`.
   DELETE /things/{thingId}/features/{featurePath}
 ```
 
-| Parameter | Type     | Description                       |
-| :-------- | :------- | :-------------------------------- |
-| `thingId`      | `string` | **Required**. Id of thing to get |
-| `featurePath`      | `string` | **Required**. feature of thing to delete |
+| Parameter     | Type     | Description                              |
+|:--------------|:---------|:-----------------------------------------|
+| `thingId`     | `string` | **Required**. Id of thing to get         |
+| `featurePath` | `string` | **Required**. feature of thing to delete |
 
 return `200` code.
 return `404` code if there is none thing with `thingId` or `featurePath` doesn't exist.
@@ -416,9 +420,9 @@ Delete only one feature with the specified `featureId`.
   DELETE /features/{featureId}
 ```
 
-| Parameter | Type     | Description                       |
-| :-------- | :------- | :-------------------------------- |
-| `featureId`      | `string` | **Required**. Id of feature to delete |
+| Parameter   | Type     | Description                           |
+|:------------|:---------|:--------------------------------------|
+| `featureId` | `string` | **Required**. Id of feature to delete |
 
 return `200` code.
 return `404` code if there is none feature with `featureId`.
@@ -429,9 +433,9 @@ Delete multiple features contained in the body.
   DELETE /features
 ```
 
-| Parameter | Type     | Description                       |
-| :-------- | :------- | :-------------------------------- |
-| `body.relationId`      | `string[]` | **Required**. Ids of features to delete |
+| Parameter         | Type       | Description                             |
+|:------------------|:-----------|:----------------------------------------|
+| `body.relationId` | `string[]` | **Required**. Ids of features to delete |
 
 return `200` code.
 return `404` code if there is none feature contained in `relationId`.
@@ -443,15 +447,16 @@ Delete multiple things contained in the body.
   DELETE /things
 ```
 
-| Parameter | Type     | Description                       |
-| :-------- | :------- | :-------------------------------- |
-| `body.thingId`      | `string[]` | **Required**. Ids of things to delete |
+| Parameter      | Type       | Description                           |
+|:---------------|:-----------|:--------------------------------------|
+| `body.thingId` | `string[]` | **Required**. Ids of things to delete |
 
 return `200` code.
 return `404` code if there is none thing contained in `thingId`.
 
 ---
 ### PUT requests
+
 ---
 
 #### Total update a Thing
@@ -460,9 +465,9 @@ Full update a specific thing with id `thingId`.
   PUT /things/{thingId}
 ```
 
-| Parameter | Type     | Description                       |
-| :-------- | :------- | :-------------------------------- |
-| `thingId`      | `string` | **Required**. Id of thing to total update |
+| Parameter | Type     | Description                               |
+|:----------|:---------|:------------------------------------------|
+| `thingId` | `string` | **Required**. Id of thing to total update |
 
 return `200` code.
 return `404` code if there is none thing with `thingId`.
@@ -474,10 +479,10 @@ Full update attributes of a specific thing with id `thingId`.
   PUT /things/{thingId}/attributes
 ```
 
-| Parameter | Type     | Description                       |
-| :-------- | :------- | :-------------------------------- |
-| `thingId`      | `string` | **Required**. Id of thing to total update |
-| `body.attributes`      | `JSON` | **Required**. attributes to total update |
+| Parameter         | Type     | Description                               |
+|:------------------|:---------|:------------------------------------------|
+| `thingId`         | `string` | **Required**. Id of thing to total update |
+| `body.attributes` | `JSON`   | **Required**. attributes to total update  |
 
 return `200` code.
 return `404` code if there is none thing with `thingId` or attributes missing .
@@ -489,10 +494,10 @@ Full update a specific thing with id `thingId`.
   PUT /things/{thingId}/features
 ```
 
-| Parameter | Type     | Description                       |
-| :-------- | :------- | :-------------------------------- |
-| `thingId`      | `string` | **Required**. Id of thing to total update |
-| `body.features`      | `JSON` |  **Required**.  features to total update |
+| Parameter       | Type     | Description                               |
+|:----------------|:---------|:------------------------------------------|
+| `thingId`       | `string` | **Required**. Id of thing to total update |
+| `body.features` | `JSON`   | **Required**.  features to total update   |
 
 return `200` code.
 return `404` code if there is none thing with `thingId` or features missing.

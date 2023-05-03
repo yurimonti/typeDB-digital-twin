@@ -1,8 +1,7 @@
+// noinspection JSUnresolvedVariable
+
 const queryRunner = require('./queryRunner');
 const client = require('../clientFunction');
-
-
-// * private functions
 
 /**
  * Extracts attributes from a ConceptGroup in Json format
@@ -52,7 +51,6 @@ function getRelationsFromAConceptGroup(aConceptGroup, thingId) {
                             [c.roles.to]: c.related
                         }
                     };
-                    //console.log(features);
                 }
             }
         }
@@ -123,7 +121,6 @@ const getAllConcepts = async (conceptMap) => {
  *
  * @param thing id of the thing from which attributes have to be deleted
  * @param attributes attributes to be deleted
- * @returns {{}|undefined} //TODO vedere cosa mettere su questo returns
  */
 function getAttributesToDeleteFromAThing(thing, attributes) {
     let attributesToDelete = {};
@@ -180,7 +177,7 @@ function attributesCheck(attributes) {
 }
 
 /**
- * Checks if a thing is present or not. In the negative case, an exception will thrown
+ * Checks if a thing is present or not. In the negative case, an exception will be thrown
  *
  * @param thingId id of the thing to be checked
  * @returns {Promise<void>} a {@see Promise} that indicates if a thing exists or not
@@ -224,7 +221,6 @@ async function getAThing(thingId) {
     const transaction = await client.openTransaction(sessionConnection);
     const thisThingMap = await queryRunner.getAThingQueryRun(thingId, transaction);
     if (!thisThingMap) throw "Empty thing";
-    // *Array of ConceptMap --> vedere documentazione (si capisce poco)
     let conceptMap = thisThingMap.conceptMaps;
     const concepts = getAllConcepts(conceptMap);
     let thing = fillThing(concepts);
@@ -245,12 +241,8 @@ async function getThings() {
     const transaction = await client.openTransaction(sessionConnection);
     let things = [];
     let collector = await queryRunner.getThingsQueryRun(transaction);
-    //* for each conceptMapGroup in Array
     for await (const element of collector) {
-        // *Array of ConceptMap --> vedere documentazione (si capisce poco)
         let conceptMap = element.conceptMaps;
-        //let owner = thisThingMap.owner;
-        // Prova per le relazioni
         const concepts = getAllConcepts(conceptMap);
         const thing = fillThing(concepts);
         things.push(thing);

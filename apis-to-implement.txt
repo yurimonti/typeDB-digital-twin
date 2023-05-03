@@ -4,7 +4,7 @@
 - update parametrized attributes params.
 - delete attributes.
 - delete features.
-- delete a thing completly.
+- delete a thing completely.
 - get parametrized for attributes.
 - get parametrized for features.
 

@@ -309,6 +309,7 @@ app.delete('/features/:featureId', async (req, res) => {
  */
 app.delete("/features", async (req, res) => {
     const body = req.body;
+    // noinspection JSUnresolvedVariable
     if (!body?.relationId) return res.status(400).send("Invalid request.");
     try {
         await queryManager.deleteMultipleFeatures(body.relationId);
