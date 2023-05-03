@@ -91,7 +91,7 @@ Subsequently, we need to download and load our example schema `schema.tql` in a 
 
 ## Tutorial
 
-https://drive.google.com/file/d/1flpy4XG7zD_lKszhwmrjpcEZcS8qq9JK/view?usp=share_link
+https://github.com/yurimonti/typeDB-digital-twin/blob/main/tutorial/tutorial.mp4
 
 ## How to run
 
