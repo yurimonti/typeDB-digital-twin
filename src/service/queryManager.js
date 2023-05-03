@@ -225,7 +225,7 @@ async function getAThing(thingId) {
     const thisThingMap = await queryRunner.getAThingQueryRun(thingId, transaction);
     if (!thisThingMap) throw "Empty thing";
     let conceptMap = thisThingMap.conceptMaps;
-    const concepts = getAllConcepts(conceptMap);
+    const concepts = await getAllConcepts(conceptMap);
     let thing = fillThing(concepts);
     await transaction.close();
     await client.closeSession(sessionConnection);
@@ -246,7 +246,7 @@ async function getThings() {
     let collector = await queryRunner.getThingsQueryRun(transaction);
     for await (const element of collector) {
         let conceptMap = element.conceptMaps;
-        const concepts = getAllConcepts(conceptMap);
+        const concepts = await getAllConcepts(conceptMap);
         const thing = fillThing(concepts);
         things.push(thing);
     }
