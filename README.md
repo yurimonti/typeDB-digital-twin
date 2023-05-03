@@ -15,6 +15,7 @@ The tool implements CRUD API (we take inspiration from [Eclipse Ditto APIs](http
     - [Evolved with logical inference](#evolved-with-logical-inference)
     - [A robust and programmatic API](#a-robust-and-programmatic-api)
   - [Setup](#setup)
+  - [Tutorial](#tutorial)
   - [How to run](#how-to-run)
   - [API Reference](#api-reference)
     - [GET requests](#get-requests)
@@ -87,6 +88,10 @@ First of all we need to install typeDB: there are more possibilities to do that,
 Secondly we suggest downloading and also use TypeDB studio, downloadable on the same source of the previous one, because with that it is possible to manage schema and query without using console.
 
 Subsequently, we need to download and load our example schema `schema.tql` in a schema write transaction, using TypeDB studio or console if you want (We encourage you to see official documentation).
+
+## Tutorial
+
+https://drive.google.com/file/d/1flpy4XG7zD_lKszhwmrjpcEZcS8qq9JK/view?usp=share_link
 
 ## How to run
 
