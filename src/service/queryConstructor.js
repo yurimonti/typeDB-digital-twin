@@ -146,6 +146,7 @@ function thingStringQuery(thingId) {
 
 /**
  * Build part of a query with entity in a relation
+ * 
  * @param {*} structuredFeatures structured version of body features
  * @returns query part regarding entities in relations
  */
@@ -160,11 +161,11 @@ function getEntitiesInRelations(structuredFeatures) {
 
 /**
  * Build part of a query to add new attributes of a thing
+ * 
  * @param thingId id of the thing
- * @param attributes attributes to add
- * @returns {string} query
+ * @param attributes attributes to add 
+ * @returns query part regarding attrinutes in a query
  */
-//TODO:finire
 function thingAttributesToAddStringQuery(thingId, attributes) {
     let thingKey = getThingKey(thingId);
     let aKeys = getEntries(attributes);
@@ -433,7 +434,6 @@ module.exports = {
     deleteFeaturesQuery,
     deleteThingLastQuery,
     deleteFeatureById,
-    //TODO:eliminare
     getThingWithFeaturesQuery,
     getThingWithNoFeaturesQuery,
     getThingsWithFeaturesQuery,

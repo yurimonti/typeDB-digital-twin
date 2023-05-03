@@ -135,12 +135,11 @@ function getAttributesToDeleteFromAThing(thing, attributes) {
     return Object.keys(attributesToDelete).length > 0 ? attributesToDelete : undefined;
 }
 
-//TODO: completare
 /**
- *
- * @param thing
- * @param features
- * @returns {{}|undefined}
+ *  Extract features to be deleted from a Thing.
+ * 
+ * @param thing thing from which features have to be deleted
+ * @param features features to be deleted
  */
 function getFeaturesToDeleteFromAThing(thing, features) {
     const keysBody = Object.keys(features);
@@ -177,7 +176,7 @@ function attributesCheck(attributes) {
 }
 
 /**
- * Checks if a thing is present or not. In the negative case, an exception will be thrown
+ * Checks if a thing doesn't exists. If it doesn't exists really, an exception will be thrown
  *
  * @param thingId id of the thing to be checked
  * @returns {Promise<void>} a {@see Promise} that indicates if a thing exists or not
@@ -187,7 +186,11 @@ async function thingNotExists(thingId) {
     if (!isPresent) throw "thing with id " + thingId + " does not exists!!";
 }
 
-//TODO:completare
+/**
+ * Checks if a thing is present or not. In the positive case, an exception will be thrown
+ * 
+ * @param {*} thingId id of the Thing to be checked
+ */
 async function thingAlreadyExists(thingId) {
     const clientConnection = client.openClient();
     const sessionConnection = await client.openSession(clientConnection);
